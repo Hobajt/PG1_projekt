@@ -38,6 +38,15 @@ Options Options::Load(std::string_view path) {
 						opts.path_background = std::string(value);
 					}
 				}
+				else if (line._Starts_with("viewFrom ")) {
+					sscanf(value.data(), "%f %f %f", &opts.viewFrom.x, &opts.viewFrom.y, &opts.viewFrom.z);
+				}
+				else if (line._Starts_with("viewAt ")) {
+					sscanf(value.data(), "%f %f %f", &opts.viewAt.x, &opts.viewAt.y, &opts.viewAt.z);
+				}
+				else if (line._Starts_with("fov ")) {
+					opts.fov = atof(value.data());
+				}
 			}
 			printf("Loaded options from '%s'\n", path.data());
 		}
