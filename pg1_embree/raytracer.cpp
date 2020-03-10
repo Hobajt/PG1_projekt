@@ -54,7 +54,7 @@ clr3f Raytracer::TraceRay(RTCRay& ray, int depth, float n1) {
 	else {
 		data.PrepareData(scene);
 
-		return data.v_normal.AsColor();
+		return data.clrDiffuse;
 	}
 
 	return color;
