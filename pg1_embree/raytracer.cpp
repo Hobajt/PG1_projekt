@@ -6,7 +6,7 @@
 #include "options.h"
 #include "Sampling.h"
 
-Raytracer::Raytracer(const int width, const int height, const float fov_y, const Vector3 view_from, const Vector3 view_at, const char* config)
+Raytracer::Raytracer(const int width, const int height, const float fov_y, const vec3f view_from, const vec3f view_at, const char* config)
 	: SimpleGuiDX11(width, height) {
 	InitDeviceAndScene(config);
 
@@ -24,10 +24,10 @@ Raytracer::~Raytracer() {
 
 //================================================================================================================================================
 
-Color4f Raytracer::get_pixel(const int x, const int y, const float t) {
+clr4f Raytracer::get_pixel(const int x, const int y, const float t) {
 	float fx = (float)x;
 	float fy = (float)y;
-	Color3f pixel = { 0.f, 0.f, 0.f };
+	clr3f pixel = { 0.f, 0.f, 0.f };
 	RTCRay primaryRay;
 
 	for (int i = 0; i < samples; i++) {
@@ -39,8 +39,8 @@ Color4f Raytracer::get_pixel(const int x, const int y, const float t) {
 	return pixel;
 }
 
-Color3f Raytracer::TraceRay(const RTCRay& ray, int depth, float n1) {
-	return Color3f{ 1.f, 1.f, 0.f };
+clr3f Raytracer::TraceRay(const RTCRay& ray, int depth, float n1) {
+	return clr3f{ 1.f, 1.f, 0.f };
 }
 
 

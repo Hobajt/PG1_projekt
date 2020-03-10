@@ -29,7 +29,7 @@ Matrix3x3::Matrix3x3( const float m00, const float m01, const float m02,
 	m22_ = m22;
 }
 
-Matrix3x3::Matrix3x3( const Vector3 basis_x, const Vector3 basis_y, const Vector3 basis_z )
+Matrix3x3::Matrix3x3( const vec3f basis_x, const vec3f basis_y, const vec3f basis_z )
 {
 	m00_ = basis_x.x;
 	m01_ = basis_y.x;
@@ -65,9 +65,9 @@ float Matrix3x3::get( const int row, const int column ) const
 	return data_[column + row * 3];
 }
 
-Vector3 operator*( const Matrix3x3 & a, const Vector3 & b )
+vec3f operator*( const Matrix3x3 & a, const vec3f & b )
 {
-	return Vector3( a.m00_ * b.x + a.m01_ * b.y + a.m02_ * b.z,
+	return vec3f( a.m00_ * b.x + a.m01_ * b.y + a.m02_ * b.z,
 		a.m10_ * b.x + a.m11_ * b.y + a.m12_ * b.z,
 		a.m20_ * b.x + a.m21_ * b.y + a.m22_ * b.z );
 }

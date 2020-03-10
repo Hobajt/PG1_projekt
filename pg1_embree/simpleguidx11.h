@@ -24,7 +24,7 @@ protected:
 	static LRESULT CALLBACK s_WndProc( HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam );		
 
 	virtual int Ui();
-	virtual Color4f get_pixel( const int x, const int y, const float t = 0.0f );
+	virtual clr4f get_pixel( const int x, const int y, const float t = 0.0f );
 
 	void Producer();
 

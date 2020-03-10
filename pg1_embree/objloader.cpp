@@ -197,7 +197,7 @@ int LoadMTL( const char * file_name, const char * path, std::vector<Material *> 
 }
 
 int LoadOBJ( const char * file_name, std::vector<Surface *> & surfaces, std::vector<Material *> & materials,
-	const bool flip_yz , const Vector3 default_color )
+	const bool flip_yz , const vec3f default_color )
 {
 	// otevøení soouboru
 	FILE * file = fopen( file_name, "rt" );
@@ -278,8 +278,8 @@ int LoadOBJ( const char * file_name, std::vector<Surface *> & surfaces, std::vec
 		LoadMTL( material_libraries[i].c_str(), path, materials );
 	}
 
-	std::vector<Vector3> vertices; // celý jeden soubor
-	std::vector<Vector3> per_vertex_normals;
+	std::vector<vec3f> vertices; // celý jeden soubor
+	std::vector<vec3f> per_vertex_normals;
 	std::vector<Coord2f> texture_coords;	
 
 	line = strtok( buffer, delim );	
@@ -295,7 +295,7 @@ int LoadOBJ( const char * file_name, std::vector<Surface *> & surfaces, std::vec
 				{
 				case ' ': // vertex
 					{
-						Vector3 vertex;
+						vec3f vertex;
 						if ( flip_yz )
 						{
 							//float x, y, z;
@@ -313,7 +313,7 @@ int LoadOBJ( const char * file_name, std::vector<Surface *> & surfaces, std::vec
 
 				case 'n': // normála vertexu
 					{
-						Vector3 normal;
+						vec3f normal;
 						if ( flip_yz )
 						{			
 							//float x, y, z;
@@ -324,7 +324,7 @@ int LoadOBJ( const char * file_name, std::vector<Surface *> & surfaces, std::vec
 						{
 							sscanf( line, "%*s %f %f %f", &normal.x, &normal.y, &normal.z );
 						}
-						normal.Normalize();
+						normal.normalize();
 						per_vertex_normals.push_back( normal );
 					}
 					break;

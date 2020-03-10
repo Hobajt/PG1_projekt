@@ -171,7 +171,7 @@ int tutorial_2()
 {
 	// create texture
 	Texture texture( "../../../data/test4.png" );
-	Color3f texel = texture.get_texel( ( 1.0f / texture.width() ) * 2.5f, 0.0f );
+	clr3f texel = texture.get_texel( ( 1.0f / texture.width() ) * 2.5f, 0.0f );
 	printf( "(r = %0.3f, g = %0.3f, b = %0.3f)\n", texel.r, texel.g, texel.b );
 
 	return EXIT_SUCCESS;
@@ -184,7 +184,7 @@ int tutorial_3( const std::string file_name, const char * config )
 	//gui.MainLoop();
 
 	Raytracer raytracer( 640, 480, deg2rad( 45.0 ),
-		Vector3( 175, -140, 130 ), Vector3( 0, 0, 35 ), config );
+		vec3f( 175, -140, 130 ), vec3f( 0, 0, 35 ), config );
 	raytracer.LoadScene( file_name );
 	raytracer.MainLoop();
 

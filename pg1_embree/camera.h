@@ -17,7 +17,7 @@ public:
 	Camera() { }
 
 	Camera( const int width, const int height, const float fov_y,
-		const Vector3 view_from, const Vector3 view_at );
+		const vec3f view_from, const vec3f view_at );
 
 	/* generate primary ray, top-left pixel image coordinates (xi, yi) are in the range <0, 1) x <0, 1) */
 	RTCRay GenerateRay( const float xi, const float yi ) const;
@@ -28,9 +28,9 @@ private:
 	int height_{ 480 };  // image height (px)
 	float fov_y_{ 0.785f }; // vertical field of view (rad)
 	
-	Vector3 view_from_; // ray origin or eye or O
-	Vector3 view_at_; // target T
-	Vector3 up_{ Vector3( 0.0f, 0.0f, 1.0f ) }; // up vector
+	vec3f view_from_; // ray origin or eye or O
+	vec3f view_at_; // target T
+	vec3f up_{ vec3f( 0.0f, 0.0f, 1.0f ) }; // up vector
 
 	float f_y_{ 1.0f }; // focal lenght (px)
 

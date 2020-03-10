@@ -17,6 +17,6 @@ System Unit Setup -> 1 Unit = 1,0 m a zaškrtnout Respect System Units in File
 \param default_color výchozí barva vertexu.
 */
 int LoadOBJ( const char * file_name, std::vector<Surface *> & surfaces, std::vector<Material *> & materials,
-	const bool flip_yz = false, const Vector3 default_color = Vector3( 0.5f, 0.5f, 0.5f ) );
+	const bool flip_yz = false, const vec3f default_color = vec3f( 0.5f, 0.5f, 0.5f ) );
 
 #endif

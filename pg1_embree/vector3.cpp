@@ -2,7 +2,7 @@
 #include "vector3.h"
 #include "mymath.h"
 
-Vector3::Vector3(const float* v) {
+vec3f::vec3f(const float* v) {
 	assert(v != NULL);
 
 	x = v[0];
@@ -10,15 +10,15 @@ Vector3::Vector3(const float* v) {
 	z = v[2];
 }
 
-float Vector3::L2Norm() const {
+float vec3f::L2Norm() const {
 	return sqrt(sqr(x) + sqr(y) + sqr(z));
 }
 
-float Vector3::SqrL2Norm() const {
+float vec3f::SqrL2Norm() const {
 	return sqr(x) + sqr(y) + sqr(z);
 }
 
-void Vector3::Normalize() {
+vec3f& vec3f::normalize() {
 	const float norm = SqrL2Norm();
 
 	if (norm != 0) {
@@ -28,29 +28,41 @@ void Vector3::Normalize() {
 		y *= rn;
 		z *= rn;
 	}
+	return *this;
 }
 
-Vector3 Vector3::CrossProduct(const Vector3& v) const {
-	return Vector3(
+vec3f vec3f::normalized() {
+	const float norm = SqrL2Norm();
+
+	if (norm != 0) {
+		const float rn = 1 / sqrt(norm);
+
+		return vec3f{ x * rn, y * rn, z * rn };
+	}
+	return vec3f{ 0.f, 0.f, 0.f };
+}
+
+vec3f vec3f::cross(const vec3f& v) const {
+	return vec3f(
 		y * v.z - z * v.y,
 		z * v.x - x * v.z,
 		x * v.y - y * v.x);
 }
 
-Vector3 Vector3::Abs() const {
-	return Vector3(abs(x), abs(y), abs(z));
+vec3f vec3f::Abs() const {
+	return vec3f(abs(x), abs(y), abs(z));
 }
 
-Vector3 Vector3::Max(const float a) const {
-	return Vector3(max(x, a), max(y, a), max(z, a));
+vec3f vec3f::Max(const float a) const {
+	return vec3f(max(x, a), max(y, a), max(z, a));
 }
 
-float Vector3::DotProduct(const Vector3& v) const {
+float vec3f::DotProduct(const vec3f& v) const {
 	return x * v.x + y * v.y + z * v.z;
 }
 
-char Vector3::LargestComponent(const bool absolute_value) {
-	const Vector3 d = (absolute_value) ? Vector3(abs(x), abs(y), abs(z)) : *this;
+char vec3f::LargestComponent(const bool absolute_value) {
+	const vec3f d = (absolute_value) ? vec3f(abs(x), abs(y), abs(z)) : *this;
 
 	if (d.x > d.y) {
 		if (d.x > d.z) {
@@ -72,77 +84,72 @@ char Vector3::LargestComponent(const bool absolute_value) {
 	return -1;
 }
 
-void Vector3::Print() {
+void vec3f::Print() {
 	printf("(%0.3f, %0.3f, %0.3f)\n", x, y, z);
 	//printf( "_point %0.3f,%0.3f,%0.3f\n", x, y, z );
 }
 
-void Vector3::SetupFromThis(float& vx, float& vy, float& vz) {
+void vec3f::SetupFromThis(float& vx, float& vy, float& vz) {
 	vx = x;
 	vy = y;
 	vz = z;
 }
 
-Color3f Vector3::AsColor() {
+clr3f vec3f::AsColor() {
 	return { x, y, z };
 }
 
-Vector3& Vector3::Normalized() {
-	Normalize();
-	return *this;
-}
-
-float Vector3::LargestValue() {
+float vec3f::LargestValue() {
 	return max(x, max(y, z));
 }
 
-Vector3 operator-(const Vector3& v) {
-	return Vector3(-v.x, -v.y, -v.z);
+vec3f operator-(const vec3f& v) {
+	return vec3f(-v.x, -v.y, -v.z);
 }
 
-Vector3 operator+(const Vector3& u, const Vector3& v) {
-	return Vector3(u.x + v.x, u.y + v.y, u.z + v.z);
+vec3f operator+(const vec3f& u, const vec3f& v) {
+	return vec3f(u.x + v.x, u.y + v.y, u.z + v.z);
 }
 
-Vector3 operator-(const Vector3& u, const Vector3& v) {
-	return Vector3(u.x - v.x, u.y - v.y, u.z - v.z);
+vec3f operator-(const vec3f& u, const vec3f& v) {
+	return vec3f(u.x - v.x, u.y - v.y, u.z - v.z);
 }
 
-Vector3 operator*(const Vector3& v, const float a) {
-	return Vector3(a * v.x, a * v.y, a * v.z);
+vec3f operator*(const vec3f& v, const float a) {
+	return vec3f(a * v.x, a * v.y, a * v.z);
 }
 
-Vector3 operator*(const float a, const Vector3& v) {
-	return Vector3(a * v.x, a * v.y, a * v.z);
+vec3f operator*(const float a, const vec3f& v) {
+	return vec3f(a * v.x, a * v.y, a * v.z);
 }
 
-Vector3 operator*(const Vector3& u, const Vector3& v) {
-	return Vector3(u.x * v.x, u.y * v.y, u.z * v.z);
+vec3f operator*(const vec3f& u, const vec3f& v) {
+	return vec3f(u.x * v.x, u.y * v.y, u.z * v.z);
 }
 
-Vector3 operator/(const Vector3& v, const float a) {
+vec3f operator/(const vec3f& v, const float a) {
 	return v * (1 / a);
 }
 
-void operator+=(Vector3& u, const Vector3& v) {
+void operator+=(vec3f& u, const vec3f& v) {
 	u.x += v.x;
 	u.y += v.y;
 	u.z += v.z;
 }
 
-void operator-=(Vector3& u, const Vector3& v) {
+void operator-=(vec3f& u, const vec3f& v) {
 	u.x -= v.x;
 	u.y -= v.y;
 	u.z -= v.z;
 }
 
-void operator*=(Vector3& v, const float a) {
+void operator*=(vec3f& v, const float a) {
 	v.x *= a;
 	v.y *= a;
 	v.z *= a;
 }
 
-void operator/=(Vector3& v, const float a) {
+void operator/=(vec3f& v, const float a) {
 	const float r = 1 / a;
 
 	v.x *= r;

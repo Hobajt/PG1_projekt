@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "camera.h"
 
-Camera::Camera(const int width, const int height, const float fov_y, const Vector3 view_from, const Vector3 view_at) {
+Camera::Camera(const int width, const int height, const float fov_y, const vec3f view_from, const vec3f view_at) {
 	width_ = width;
 	height_ = height;
 	fov_y_ = fov_y;
@@ -17,10 +17,9 @@ Camera::Camera(const int width, const int height, const float fov_y, const Vecto
 RTCRay Camera::GenerateRay(const float x_i, const float y_i) const {
 	RTCRay ray = RTCRay();
 
-	Vector3 dir = { x_i - width_ * 0.5f, height_ * 0.5f - y_i, -f_y_ };
-	dir.Normalize();
+	vec3f dir = vec3f( x_i - width_ * 0.5f, height_ * 0.5f - y_i, -f_y_ ).normalize();
 	dir = M_c_w_ * dir;
-	dir.Normalize();
+	dir.normalize();
 
 	ray.org_x = view_from_.x;
 	ray.org_y = view_from_.y;
@@ -41,8 +40,8 @@ RTCRay Camera::GenerateRay(const float x_i, const float y_i) const {
 }
 
 void Camera::Update() {
-	Vector3 z_c = (view_from_ - view_at_).Normalized();
-	Vector3 x_c = Vector3{ 0.f, 0.f, 1.f }.CrossProduct(z_c).Normalized();
-	Vector3 y_c = z_c.CrossProduct(x_c).Normalized();
+	vec3f z_c = (view_from_ - view_at_).normalize();
+	vec3f x_c = vec3f{ 0.f, 0.f, 1.f }.cross(z_c).normalize();
+	vec3f y_c = z_c.cross(x_c).normalize();
 	M_c_w_ = Matrix3x3(x_c, y_c, z_c);
 }

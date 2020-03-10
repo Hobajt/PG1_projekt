@@ -27,7 +27,7 @@ public:
 		const float m10, const float m11, const float m12,
 		const float m20, const float m21, const float m22 );
 
-	Matrix3x3( const Vector3 basis_x, const Vector3 basis_y, const Vector3 basis_z );		
+	Matrix3x3( const vec3f basis_x, const vec3f basis_y, const vec3f basis_z );		
 
 	//! Transpozice matice.
 	/*!
@@ -51,7 +51,7 @@ public:
 	*/
 	float get( const int row, const int column ) const;
 	
-	friend Vector3 operator*( const Matrix3x3 & a, const Vector3 & b );
+	friend vec3f operator*( const Matrix3x3 & a, const vec3f & b );
 	friend Matrix3x3 operator*( const Matrix3x3 & a, const Matrix3x3 & b );	
 
 private:

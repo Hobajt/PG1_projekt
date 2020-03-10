@@ -8,8 +8,8 @@ public:
 	int width{ 640 };
 	int height{ 480 };
 
-	Vector3 viewAt{ Vector3(0, 0, 35) };
-	Vector3 viewFrom{ Vector3(175, -140, 130) };
+	vec3f viewAt{ vec3f(0, 0, 35) };
+	vec3f viewFrom{ vec3f(175, -140, 130) };
 	float fov{ 45.0 };
 
 	int sampleCount{ 4 };

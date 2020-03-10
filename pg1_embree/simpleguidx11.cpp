@@ -78,9 +78,9 @@ int SimpleGuiDX11::Ui()
 	return 0;
 }
 
-Color4f SimpleGuiDX11::get_pixel( const int x, const int y, const float t )
+clr4f SimpleGuiDX11::get_pixel( const int x, const int y, const float t )
 {
-	return Color4f{ 1.0f, 0.0f, 1.0f, 1.0f };
+	return clr4f{ 1.0f, 0.0f, 1.0f, 1.0f };
 }
 
 void SimpleGuiDX11::Producer()
@@ -106,7 +106,7 @@ void SimpleGuiDX11::Producer()
 		{		
 			for ( int x = 0; x < width_; ++x )
 			{				
-				const Color4f pixel = get_pixel( x, y, t );
+				const clr4f pixel = get_pixel( x, y, t );
 				const int offset = ( y * width_ + x ) * 4;
 
 				local_data[offset] = pixel.r;

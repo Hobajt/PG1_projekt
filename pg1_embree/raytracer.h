@@ -18,7 +18,7 @@ class Raytracer : public SimpleGuiDX11
 {
 public:
 	Raytracer( const int width, const int height, 
-		const float fov_y, const Vector3 view_from, const Vector3 view_at,
+		const float fov_y, const vec3f view_from, const vec3f view_at,
 		const char * config = "threads=0,verbose=3" );
 	~Raytracer();
 
@@ -28,9 +28,9 @@ public:
 	int Ui();
 
 
-	Color4f get_pixel( const int x, const int y, const float t = 0.0f ) override;
+	clr4f get_pixel( const int x, const int y, const float t = 0.0f ) override;
 
-	Color3f TraceRay(const RTCRay& ray, int depth = 0, float n1 = 1.f);
+	clr3f TraceRay(const RTCRay& ray, int depth = 0, float n1 = 1.f);
 
 private:
 	std::vector<Surface *> surfaces_;

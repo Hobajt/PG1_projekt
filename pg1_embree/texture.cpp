@@ -65,7 +65,7 @@ Texture::~Texture()
 	}
 }
 
-Color3f Texture::get_texel( const float u, const float v ) const
+clr3f Texture::get_texel( const float u, const float v ) const
 {
 	//assert( ( u >= 0.0f && u <= 1.0f ) && ( v >= 0.0f && v <= 1.0f ) );	
 	
@@ -77,7 +77,7 @@ Color3f Texture::get_texel( const float u, const float v ) const
 	const float g = data_[offset + 1] / 255.0f;
 	const float r = data_[offset + 2] / 255.0f;
 	
-	return Color3f{ r, g, b };
+	return clr3f{ r, g, b };
 }
 
 int Texture::width() const
