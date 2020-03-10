@@ -122,6 +122,7 @@
     <ClInclude Include="simpleguidx11.h" />
     <ClInclude Include="src\application.h" />
     <ClInclude Include="src\options.h" />
+    <ClInclude Include="src\sumstructs.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="structs.h" />
     <ClInclude Include="surface.h" />

@@ -3,6 +3,10 @@
 #include "surface.h"
 #include "camera.h"
 
+#include "sumstructs.h"
+
+struct Options;
+
 /*! \class Raytracer
 \brief General ray tracer class.
 
@@ -19,20 +23,24 @@ public:
 	~Raytracer();
 
 	int InitDeviceAndScene( const char * config );
-
 	int ReleaseDeviceAndScene();
-
 	void LoadScene( const std::string file_name );
+	int Ui();
+
 
 	Color4f get_pixel( const int x, const int y, const float t = 0.0f ) override;
 
-	int Ui();
+	Color3f TraceRay(const RTCRay& ray, int depth = 0, float n1 = 1.f);
 
 private:
 	std::vector<Surface *> surfaces_;
 	std::vector<Material *> materials_;
 
 	RTCDevice device_;
-	RTCScene scene_;
+	SceneData scene;
 	Camera camera_;
+
+	int samples;
+	float _1_samples;
+	Options* opt;
 };

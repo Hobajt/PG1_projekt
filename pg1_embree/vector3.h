@@ -1,131 +1,77 @@
 #ifndef VECTOR3_H_
 #define VECTOR3_H_
 
-/*! \struct Vector3
-\brief Trojrozmìrný (3D) vektor.
+#include "structs.h"
 
-Implementace tøísložkového reálného vektoru podporující základní
-matematické operace.
-
-\note
-Vektor se považuje za sloupcový, pøestože je v komentáøích pro jednoduchost
-uvádìn jako øádkový.
-
-\code{.cpp}
-Vector3 v = Vector3( 2.0f, 4.5f, 7.8f );
-v.Normalize();
-\endcode
-
-\author Tomáš Fabián
-\version 0.95
-\date 2007-2015
-*/
-struct /*ALIGN*/ Vector3
-{
+struct /*ALIGN*/ Vector3 {
 public:
-	union	// anonymní unie
+	union
 	{
-		struct
-		{
-			float x; /*!< První složka vektoru. */
-			float y; /*!< Druhá složka vektoru. */
-			float z; /*!< Tøetí složka vektoru. */
+		struct {
+			float x;
+			float y;
+			float z;
 		};
 
-		float data[3]; /*!< Pole složek vektoru. */
+		float data[3];
 	};
 
-	//! Výchozí konstruktor.
-	/*!
-	Inicializuje všechny složky vektoru na hodnotu nula,
-	\f$\mathbf{v}=\mathbf{0}\f$.
-	*/
-	Vector3() : x( 0 ), y( 0 ), z( 0 ) { }	
+	Vector3() : x(0), y(0), z(0) {}
 
-	//! Obecný konstruktor.
-	/*!
-	Inicializuje složky vektoru podle zadaných hodnot parametrù,
-	\f$\mathbf{v}=(x,y,z)\f$.
+	Vector3(const float x, const float y, const float z) : x(x), y(y), z(z) {}
 
-	\param x první složka vektoru.
-	\param y druhá složka vektoru.
-	\param z tøetí složka vektoru.
-	*/
-	Vector3( const float x, const float y, const float z ) : x( x ), y( y ), z( z ) { }
+	Vector3(const float* v);
 
-	//! Konstruktor z pole.
-	/*!
-	Inicializuje složky vektoru podle zadaných hodnot pole,
-
-	\param v ukazatel na první složka vektoru.	
-	*/
-	Vector3( const float * v );
-
-	//! L2-norma vektoru.
-	/*!
-	\return x Hodnotu \f$\mathbf{||v||}=\sqrt{x^2+y^2+z^2}\f$.
-	*/
 	float L2Norm() const;
 
-	//! Druhá mocnina L2-normy vektoru.
-	/*!
-	\return Hodnotu \f$\mathbf{||v||^2}=x^2+y^2+z^2\f$.
-	*/
 	float SqrL2Norm() const;
 
-	//! Normalizace vektoru.
-	/*!
-	Po provedení operace bude mít vektor jednotkovou délku.
-	*/
 	void Normalize();
 
-	//! Vektorový souèin.
-	/*!
-	\param v vektor \f$\mathbf{v}\f$.
-
-	\return Vektor \f$(\mathbf{u}_x \mathbf{v}_z - \mathbf{u}_z \mathbf{v}_y,
-	\mathbf{u}_z \mathbf{v}_x - \mathbf{u}_x \mathbf{v}_z,
-	\mathbf{u}_x \mathbf{v}_y - \mathbf{u}_y \mathbf{v}_x)\f$.
-	*/
-	Vector3 CrossProduct( const Vector3 & v ) const;	
+	Vector3 CrossProduct(const Vector3& v) const;
 
 	Vector3 Abs() const;
 
-	Vector3 Max( const float a = 0 ) const;
-
-	//! Skalární souèin.
-	/*!		
-	\return Hodnotu \f$\mathbf{u}_x \mathbf{v}_x + \mathbf{u}_y \mathbf{v}_y + \mathbf{u}_z \mathbf{v}_z)\f$.
-	*/
-	float DotProduct( const Vector3 & v ) const;	
-
-	//! Index nejvìtší složky vektoru.
-	/*!
-	\param absolute_value index bude urèen podle absolutní hodnoty složky
-
-	\return Index nejvìtší složky vektoru.
-	*/
-	char LargestComponent( const bool absolute_value = false );	
+	Vector3 Max(const float a = 0) const;
+	float DotProduct(const Vector3& v) const;
+	char LargestComponent(const bool absolute_value = false);
 
 	void Print();
 
-	// --- operátory ------
+	void SetupFromThis(float& vx, float& vy, float& vz);
 
-	friend Vector3 operator-( const Vector3 & v );
+	Color3f AsColor();
 
-	friend Vector3 operator+( const Vector3 & u, const Vector3 & v );
-	friend Vector3 operator-( const Vector3 & u, const Vector3 & v );
+	Vector3& Normalized();
 
-	friend Vector3 operator*( const Vector3 & v, const float a );	
-	friend Vector3 operator*( const float a, const Vector3 & v );
-	friend Vector3 operator*( const Vector3 & u, const Vector3 & v );
+	float LargestValue();
 
-	friend Vector3 operator/( const Vector3 & v, const float a );
+	inline Vector3 Orthogonal(const Vector3& v) const { return (abs(v.x) > abs(v.z)) ? Vector3(-v.y, v.x, 0.0f) : Vector3(0.0f, -v.z, v.y); }
+	inline Vector3 Orthogonal() const { return (abs(x) > abs(z)) ? Vector3(-y, x, 0.0f) : Vector3(0.0f, -z, y); }
 
-	friend void operator+=( Vector3 & u, const Vector3 & v );
-	friend void operator-=( Vector3 & u, const Vector3 & v );
-	friend void operator*=( Vector3 & v, const float a );
-	friend void operator/=( Vector3 & v, const float a );		
+	inline Vector3 ReflectVector(const Vector3& in) const {
+		float dotNormalIn = this->DotProduct(in);
+		return (2.f * dotNormalIn) * *this - in;
+	}
+
+	float& operator [] (const int idx) { return data[idx % 3]; }
+
+
+	friend Vector3 operator-(const Vector3& v);
+
+	friend Vector3 operator+(const Vector3& u, const Vector3& v);
+	friend Vector3 operator-(const Vector3& u, const Vector3& v);
+
+	friend Vector3 operator*(const Vector3& v, const float a);
+	friend Vector3 operator*(const float a, const Vector3& v);
+	friend Vector3 operator*(const Vector3& u, const Vector3& v);
+
+	friend Vector3 operator/(const Vector3& v, const float a);
+
+	friend void operator+=(Vector3& u, const Vector3& v);
+	friend void operator-=(Vector3& u, const Vector3& v);
+	friend void operator*=(Vector3& v, const float a);
+	friend void operator/=(Vector3& v, const float a);
 };
 
 #endif
