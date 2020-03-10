@@ -12,9 +12,10 @@ Raytracer::Raytracer(const int width, const int height, const float fov_y, const
 
 	camera_ = Camera(width, height, fov_y, view_from, view_at);
 
-	opt = &Options::Get();
-	samples = opt->sampleCount;
+	Options& opt = Options::Get();
+	samples = opt.sampleCount;
 	_1_samples = 1.f / samples;
+	maxDepth = opt.maxDepth;
 	Sampling::InitGenerator();
 }
 
@@ -25,22 +26,33 @@ Raytracer::~Raytracer() {
 //================================================================================================================================================
 
 clr4f Raytracer::get_pixel(const int x, const int y, const float t) {
-	float fx = (float)x;
-	float fy = (float)y;
 	clr3f pixel = { 0.f, 0.f, 0.f };
 	RTCRay primaryRay;
+	float fx = (float)x;
+	float fy = (float)y;
 
-	for (int i = 0; i < samples; i++) {
+	for (int i = 0; i < samples-1; i++) {
 		primaryRay = camera_.GenerateRay(fx + Sampling::Random05(), fy + Sampling::Random05());
 		pixel += TraceRay(primaryRay);
 	}
 	primaryRay = camera_.GenerateRay(fx, fy);
 	pixel += TraceRay(primaryRay);
-	return pixel;
+
+	return pixel * _1_samples;
 }
 
-clr3f Raytracer::TraceRay(const RTCRay& ray, int depth, float n1) {
-	return clr3f{ 1.f, 1.f, 0.f };
+clr3f Raytracer::TraceRay(RTCRay& ray, int depth, float n1) {
+	clr3f color = { 0.f, 0.f, 0.f };
+
+	IntersectionEmbree data = scene.IntersectRay(ray);
+	if (data.IntersectionFailed() || depth >= maxDepth) {
+
+	}
+	else {
+		color = { 1.f, 1.f, 1.f };
+	}
+
+	return color;
 }
 
 
@@ -50,6 +62,21 @@ clr3f Raytracer::TraceRay(const RTCRay& ray, int depth, float n1) {
 
 //================================================================================================================================================
 
+RTCRay Raytracer::PrepareRay(vec3f& rOrg, vec3f& rDir) {
+	RTCRay ray = RTCRay();
+	rOrg.SetupFromThis(ray.org_x, ray.org_y, ray.org_z);
+	rDir.SetupFromThis(ray.dir_x, ray.dir_y, ray.dir_z);
+
+	ray.tnear = 0.1f;
+	ray.tfar = FLT_MAX;
+
+	ray.flags = 0;
+	ray.mask = 0;
+	ray.id = 0;
+
+
+	return ray;
+}
 
 int Raytracer::InitDeviceAndScene(const char* config) {
 	device_ = rtcNewDevice(config);

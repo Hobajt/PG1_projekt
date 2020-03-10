@@ -4,7 +4,7 @@
 #include <iostream>
 #include <fstream>
 
-Options Options::instance = Options::Load("res/optsions.cfg");
+Options Options::instance = Options::Load("res/options.cfg");
 
 Options Options::Load(std::string_view path) {
 	Options opts = {};

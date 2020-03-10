@@ -15,7 +15,7 @@ public:
 	int sampleCount{ 4 };
 	int maxDepth{ 10 };
 
-	std::string path_model{"res/models/RT_6887_allied_avenger.obj"};
+	std::string path_model{"res/models/avenger/RT_6887_allied_avenger.obj"};
 	std::string path_background{"res/backgrounds/bg3.hdr"};
 public:
 	static inline Options& Get() { return instance; }

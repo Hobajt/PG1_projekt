@@ -26,11 +26,12 @@ public:
 	int ReleaseDeviceAndScene();
 	void LoadScene( const std::string file_name );
 	int Ui();
+	RTCRay PrepareRay(vec3f& rOrg, vec3f& rDir);
+
 
 
 	clr4f get_pixel( const int x, const int y, const float t = 0.0f ) override;
-
-	clr3f TraceRay(const RTCRay& ray, int depth = 0, float n1 = 1.f);
+	clr3f TraceRay(RTCRay& ray, int depth = 0, float n1 = 1.f);
 
 private:
 	std::vector<Surface *> surfaces_;
@@ -42,5 +43,5 @@ private:
 
 	int samples;
 	float _1_samples;
-	Options* opt;
+	int maxDepth;
 };
