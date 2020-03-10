@@ -8,6 +8,8 @@
 #include "background.h"
 
 clr3f defaultBackground = { 0.1f, 0.1f, 0.1f };
+const vec3f p_light = Options::Get().omnilight_pos;
+const vec3f lightClr = Options::Get().omnilight_clr;
 
 Raytracer::Raytracer(const int width, const int height, const float fov_y, const vec3f view_from, const vec3f view_at, const char* config)
 	: SimpleGuiDX11(width, height), background(std::make_unique<BackgroundStatic>(defaultBackground)) {
@@ -54,7 +56,18 @@ clr3f Raytracer::TraceRay(RTCRay& ray, int depth, float n1) {
 	else {
 		data.PrepareData(scene);
 
-		return data.clrDiffuse * data.dotNormalView;
+		//diffuse part
+		color = data.clrDiffuse * data.dotNormalView;
+		
+		//specular part
+		vec3f v_light = (p_light - data.p_rayHit).normalize();
+		float dotNormalLight = data.v_normal.DotProduct(v_light);
+		vec3f v_lightReflected = (2.f * dotNormalLight) * data.v_normal - v_light;
+		float specComp = powf(max(data.v_view.DotProduct(v_lightReflected), 0), data.material->shininess);
+		color += data.clrSpecular * specComp;
+
+		RTCRay rayReflected = PrepareRay(data.p_rayHit, data.v_rayDirReflected);
+		return color;// +TraceRay(rayReflected, depth + 1);
 	}
 
 	return color;

@@ -55,6 +55,8 @@ void IntersectionEmbree::PrepareData(const SceneData& scene) {
 	p_rayOrg = { rhit.ray.org_x, rhit.ray.org_y, rhit.ray.org_z };
 	p_rayHit = p_rayOrg + (v_rayDir * rhit.ray.tfar);
 
+	v_rayDirReflected = (2.f * dotNormalView) * v_normal - v_view;
+
 	dotNormalRay = v_normal.DotProduct(v_rayDir);
 	dotNormalView = -dotNormalRay;
 }

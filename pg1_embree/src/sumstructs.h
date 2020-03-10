@@ -31,6 +31,7 @@ public:
 	vec3f v_normal;
 	vec3f v_rayDir;
 	vec3f v_view;
+	vec3f v_rayDirReflected;
 
 	vec3f p_rayHit;
 	vec3f p_rayOrg;
