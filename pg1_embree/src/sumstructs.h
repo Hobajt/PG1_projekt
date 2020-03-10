@@ -43,6 +43,9 @@ public:
 	clr3f clrSpecular;
 	clr3f clrAmbient;
 
+	clr3f clrEmission;
+	clr3f clrAttenuation;
+
 	Material* material;
 	Texture* texDiffuse;
 	Coord2f texCoords;

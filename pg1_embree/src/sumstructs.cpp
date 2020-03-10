@@ -37,6 +37,9 @@ void IntersectionEmbree::PrepareData(const SceneData& scene) {
 	texDiffuse = material->get_texture(Material::kDiffuseMapSlot);
 	rtcInterpolate0(geometry, rhit.hit.primID, rhit.hit.u, rhit.hit.v, RTC_BUFFER_TYPE_VERTEX_ATTRIBUTE, 1, &texCoords.u, 2);
 
+	clrEmission = material->emission.AsColor();
+	clrAttenuation = material->attenuation.AsColor();
+
 	clrDiffuse = texDiffuse ? texDiffuse->get_texel(texCoords.u, 1 - texCoords.v) : material->diffuse.AsColor();
 	clrSpecular = material->specular.AsColor();
 	clrAmbient = material->ambient.AsColor();

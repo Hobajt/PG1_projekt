@@ -56,18 +56,53 @@ clr3f Raytracer::TraceRay(RTCRay& ray, int depth, float n1) {
 	else {
 		data.PrepareData(scene);
 
-		//diffuse part
-		color = data.clrDiffuse * data.dotNormalView + data.clrAmbient;
-		
-		//specular part
+		//phong - diffuse part
+		clr3f clrPhong = data.clrDiffuse * data.dotNormalView + data.clrAmbient;
+
+		//phong - specular part
 		vec3f v_light = (p_light - data.p_rayHit).normalize();
 		float dotNormalLight = data.v_normal.DotProduct(v_light);
 		vec3f v_lightReflected = (2.f * dotNormalLight) * data.v_normal - v_light;
 		float specComp = powf(max(data.v_view.DotProduct(v_lightReflected), 0), data.material->shininess);
-		RTCRay rayReflected = PrepareRay(data.p_rayHit, data.v_rayDirReflected);
-		color += data.clrSpecular * specComp * TraceRay(rayReflected, depth + 1);
+		clrPhong += data.clrSpecular * specComp;
 
-		return color;
+		//fresnel variables
+		float R = 1.f;
+		float n2 = n1 == 1.f ? data.material->ior : 1.f;
+		float iorRatio = n1 / n2;
+		float r0 = (n1 - n2) / (n1 + n2); r0 *= r0;
+
+		//refraction
+		float refractionRootVal = 1 - (iorRatio * iorRatio) * (1 - data.dotNormalRay * data.dotNormalRay);
+		if (refractionRootVal >= 0) {
+			vec3f v_rayDirRefracted = (iorRatio * data.v_rayDir - (iorRatio * data.dotNormalRay + sqrtf(refractionRootVal)) * data.v_normal).normalize();
+			float dotNormalRayRefracted = data.v_normal.DotProduct(-v_rayDirRefracted);
+
+			//fresnel (schlick) - reflected/refracted ratio
+			float theta = n1 <= n2 ? data.dotNormalView : dotNormalRayRefracted;
+			float minTheta = 1 - theta;
+			R = r0 + (1 - r0) * minTheta * minTheta * minTheta * minTheta * minTheta;
+
+			//only do refraction for glass surfaces
+			if (data.material->shader == ShaderType::Glass) {
+				RTCRay rayRefracted = PrepareRay(data.p_rayHit, v_rayDirRefracted);
+				color = TraceRay(rayRefracted, depth + 1, n2) * (1.f - R);
+			}
+		}
+
+		//reflection
+		RTCRay rayReflected = PrepareRay(data.p_rayHit, data.v_rayDirReflected);
+		color += TraceRay(rayReflected, depth + 1, n1)* R;
+
+		//beer-lambert attenuation
+		float l = n1 == 1.f ? 0.f : data.rhit.ray.tfar;
+		clr3f T_bl = data.clrAttenuation * -l;
+		T_bl = { expf(T_bl.r), expf(T_bl.g), expf(T_bl.b) };
+		color *= T_bl;
+
+		//final color
+		if (data.material->shader != ShaderType::Glass)
+			color += clrPhong;
 	}
 
 	return color;
