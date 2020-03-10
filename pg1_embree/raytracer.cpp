@@ -140,6 +140,7 @@ int Raytracer::InitDeviceAndScene(const char* config) {
 
 	// create a new scene bound to the specified device
 	scene.scene = rtcNewScene(device_);
+	rtcSetSceneFlags(scene.scene, RTC_SCENE_FLAG_ROBUST);
 
 	return S_OK;
 }
