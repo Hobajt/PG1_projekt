@@ -102,6 +102,9 @@
     <ClInclude Include="vector3.h">
       <Filter>Header Files\math</Filter>
     </ClInclude>
+    <ClInclude Include="src\options.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -170,5 +173,11 @@
     <ClCompile Include="mymath.cpp">
       <Filter>Source Files\math</Filter>
     </ClCompile>
+    <ClCompile Include="src\options.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="res\options.cfg" />
   </ItemGroup>
 </Project>
