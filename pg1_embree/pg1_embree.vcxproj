@@ -120,6 +120,7 @@
     <ClInclude Include="objloader.h" />
     <ClInclude Include="raytracer.h" />
     <ClInclude Include="simpleguidx11.h" />
+    <ClInclude Include="src\application.h" />
     <ClInclude Include="src\options.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="structs.h" />
@@ -146,6 +147,7 @@
     <ClCompile Include="raytracer.cpp" />
     <ClCompile Include="pg1_embree.cpp" />
     <ClCompile Include="simpleguidx11.cpp" />
+    <ClCompile Include="src\application.cpp" />
     <ClCompile Include="src\options.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>

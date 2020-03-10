@@ -1,11 +1,16 @@
 #pragma once
 
 #include <string>
+#include "vector3.h"
 
 struct Options {
 public:
 	int width{ 640 };
 	int height{ 480 };
+
+	Vector3 viewAt{ Vector3(0, 0, 35) };
+	Vector3 viewFrom{ Vector3(175, -140, 130) };
+	float fov{ 45.0 };
 
 	int sampleCount{ 4 };
 	int maxDepth{ 10 };

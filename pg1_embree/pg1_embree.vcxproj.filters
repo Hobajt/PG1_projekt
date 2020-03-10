@@ -105,6 +105,9 @@
     <ClInclude Include="src\options.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\application.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -174,6 +177,9 @@
       <Filter>Source Files\math</Filter>
     </ClCompile>
     <ClCompile Include="src\options.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\application.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
