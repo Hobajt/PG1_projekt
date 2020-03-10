@@ -52,7 +52,9 @@ clr3f Raytracer::TraceRay(RTCRay& ray, int depth, float n1) {
 		return background->GetPixelColor(data.v_rayDir);
 	}
 	else {
-		color = { 1.f, 1.f, 1.f };
+		data.PrepareData(scene);
+
+		return data.v_normal.AsColor();
 	}
 
 	return color;
