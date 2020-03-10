@@ -57,17 +57,17 @@ clr3f Raytracer::TraceRay(RTCRay& ray, int depth, float n1) {
 		data.PrepareData(scene);
 
 		//diffuse part
-		color = data.clrDiffuse * data.dotNormalView;
+		color = data.clrDiffuse * data.dotNormalView + data.clrAmbient;
 		
 		//specular part
 		vec3f v_light = (p_light - data.p_rayHit).normalize();
 		float dotNormalLight = data.v_normal.DotProduct(v_light);
 		vec3f v_lightReflected = (2.f * dotNormalLight) * data.v_normal - v_light;
 		float specComp = powf(max(data.v_view.DotProduct(v_lightReflected), 0), data.material->shininess);
-		color += data.clrSpecular * specComp;
-
 		RTCRay rayReflected = PrepareRay(data.p_rayHit, data.v_rayDirReflected);
-		return color;// +TraceRay(rayReflected, depth + 1);
+		color += data.clrSpecular * specComp * TraceRay(rayReflected, depth + 1);
+
+		return color;
 	}
 
 	return color;
