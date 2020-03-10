@@ -114,6 +114,9 @@
     <ClInclude Include="src\Sampling.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\background.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -192,6 +195,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\sumstructs.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\background.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

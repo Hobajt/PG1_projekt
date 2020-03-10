@@ -121,6 +121,7 @@
     <ClInclude Include="raytracer.h" />
     <ClInclude Include="simpleguidx11.h" />
     <ClInclude Include="src\application.h" />
+    <ClInclude Include="src\background.h" />
     <ClInclude Include="src\options.h" />
     <ClInclude Include="src\Sampling.h" />
     <ClInclude Include="src\sumstructs.h" />
@@ -150,6 +151,7 @@
     <ClCompile Include="pg1_embree.cpp" />
     <ClCompile Include="simpleguidx11.cpp" />
     <ClCompile Include="src\application.cpp" />
+    <ClCompile Include="src\background.cpp" />
     <ClCompile Include="src\options.cpp" />
     <ClCompile Include="src\Sampling.cpp" />
     <ClCompile Include="src\sumstructs.cpp" />

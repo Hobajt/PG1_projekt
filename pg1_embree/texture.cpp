@@ -65,18 +65,29 @@ Texture::~Texture()
 	}
 }
 
-clr3f Texture::get_texel( const float u, const float v ) const
-{
+clr3f Texture::get_texel(const float u, const float v) const {
 	//assert( ( u >= 0.0f && u <= 1.0f ) && ( v >= 0.0f && v <= 1.0f ) );	
-	
-	const int x = max( 0, min( width_ - 1, int( u * width_ ) ) );
-	const int y = max( 0, min( height_ - 1, int( v * height_ ) ) );
+
+	const int x = max(0, min(width_ - 1, int(u * width_)));
+	const int y = max(0, min(height_ - 1, int(v * height_)));
 
 	const int offset = y * scan_width_ + x * pixel_size_;
-	const float b = data_[offset] / 255.0f;
-	const float g = data_[offset + 1] / 255.0f;
-	const float r = data_[offset + 2] / 255.0f;
-	
+
+	float b, g, r;
+
+	//loading from .HDR - already in linear (floats instead of uchars)
+	if (pixel_size_ == 12) {
+		float* a = (float*)&(data_[offset]);
+		b = a[2];
+		g = a[1];
+		r = a[0];
+	}
+	else {
+		b = data_[offset] / 255.0f;
+		g = data_[offset + 1] / 255.0f;
+		r = data_[offset + 2] / 255.0f;
+	}
+
 	return clr3f{ r, g, b };
 }
 

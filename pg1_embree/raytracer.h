@@ -4,6 +4,7 @@
 #include "camera.h"
 
 #include "sumstructs.h"
+#include "background.h"
 
 struct Options;
 
@@ -27,6 +28,7 @@ public:
 	void LoadScene( const std::string file_name );
 	int Ui();
 	RTCRay PrepareRay(vec3f& rOrg, vec3f& rDir);
+	inline void SetBackground(std::unique_ptr<Background> bg) { background = std::move(bg); }
 
 
 
@@ -44,4 +46,6 @@ private:
 	int samples;
 	float _1_samples;
 	int maxDepth;
+
+	std::unique_ptr<Background> background;
 };

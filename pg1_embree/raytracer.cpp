@@ -5,9 +5,12 @@
 
 #include "options.h"
 #include "Sampling.h"
+#include "background.h"
+
+clr3f defaultBackground = { 0.1f, 0.1f, 0.1f };
 
 Raytracer::Raytracer(const int width, const int height, const float fov_y, const vec3f view_from, const vec3f view_at, const char* config)
-	: SimpleGuiDX11(width, height) {
+	: SimpleGuiDX11(width, height), background(std::make_unique<BackgroundStatic>(defaultBackground)) {
 	InitDeviceAndScene(config);
 
 	camera_ = Camera(width, height, fov_y, view_from, view_at);
@@ -46,7 +49,7 @@ clr3f Raytracer::TraceRay(RTCRay& ray, int depth, float n1) {
 
 	IntersectionEmbree data = scene.IntersectRay(ray);
 	if (data.IntersectionFailed() || depth >= maxDepth) {
-
+		return background->GetPixelColor(data.v_rayDir);
 	}
 	else {
 		color = { 1.f, 1.f, 1.f };
