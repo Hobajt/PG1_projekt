@@ -83,28 +83,6 @@ clr4f SimpleGuiDX11::get_pixel(const int x, const int y, const float t) {
 	return clr4f{ 1.0f, 0.0f, 1.0f, 1.0f };
 }
 
-float __toSRGB(float color, float _1_gamma) {
-	if (color <= 0.0f) return 0.0f;
-	else if (color >= 1.0f) return 1.0f;
-	assert((color >= 0.0f) && (color <= 1.0f));
-	if (color <= 0.0031308f) {
-		return 12.92f * color;
-	}
-	else {
-		const float a = 0.055f;
-		return (1.0f + a) * powf(color, _1_gamma) - a;
-	}
-}
-
-clr4f AsSRGB(const clr4f& c, float _1_gamma = _1_24f) {
-	return clr4f {
-		__toSRGB(c.r, _1_gamma),
-		__toSRGB(c.g, _1_gamma),
-		__toSRGB(c.b, _1_gamma),
-		c.a
-	};
-}
-
 clr4f Tonemapping(clr4f& clr) {
 	clr4f c = clr * exposure;
 	c = c / (1.f + c);
@@ -142,7 +120,7 @@ void SimpleGuiDX11::Producer() {
 				clr = (pixel + clr * nf) * _1_n;
 
 				clr4f& res = (clr4f&)(local_data[offset]);
-				res = AsSRGB(clr);
+				res = clr.ToSRGB();
 				//res = clr;
 				/*res = Tonemapping(res);*/
 

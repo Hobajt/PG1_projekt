@@ -36,8 +36,6 @@ public:
 	//Helper methods.
 	clr3f DirectLighting(IntersectionEmbree& data);
 	clr3f GlassShading(IntersectionEmbree& data, int depth, float n1);
-
-
 private:
 	std::vector<Surface*> surfaces_;
 	std::vector<Material*> materials_;

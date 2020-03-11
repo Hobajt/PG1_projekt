@@ -29,12 +29,12 @@ public:
 	Texture* get_texture(const int slot) const;
 
 public:
-	vec3f ambient;
-	vec3f diffuse;
-	vec3f specular;
+	vec3f ambient{ vec3f{0.f, 0.f, 0.f} };
+	vec3f diffuse{ vec3f{0.f, 0.f, 0.f} };
+	vec3f specular{ vec3f{0.f, 0.f, 0.f} };
 
-	vec3f emission;
-	vec3f attenuation;
+	vec3f emission{ vec3f{0.f, 0.f, 0.f} };
+	vec3f attenuation{ vec3f{0.f, 0.f, 0.f} };
 
 	float shininess; 
 

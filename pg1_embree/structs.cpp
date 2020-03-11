@@ -45,6 +45,42 @@ clr3f& clr3f::operator-=(const clr3f& rhs) {
 	return *this;
 }
 
+bool clr3f::IsZero() {
+	return b == 0.f && g == 0.f && r == 0.f;
+}
+
+clr3f clr3f::AsLinear(const clr3f& c, float gamma) {
+	return clr3f{
+		__toLinear(c.r, gamma),
+		__toLinear(c.g, gamma),
+		__toLinear(c.b, gamma)
+	};
+}
+
+clr3f clr3f::AsSRGB(const clr3f& c, float _1_gamma) {
+	return clr3f{
+		__toSRGB(c.r, _1_gamma),
+		__toSRGB(c.g, _1_gamma),
+		__toSRGB(c.b, _1_gamma)
+	};
+}
+
+clr3f clr3f::ToLinear(float gamma) {
+	return clr3f{ 
+		__toLinear(r, gamma), 
+		__toLinear(g, gamma), 
+		__toLinear(b, gamma) 
+	};
+}
+
+clr3f clr3f::ToSRGB(float _1_gamma) {
+	return clr3f{
+		__toSRGB(r, _1_gamma),
+		__toSRGB(g, _1_gamma),
+		__toSRGB(b, _1_gamma)
+	};
+}
+
 clr3f& clr3f::AsLinear(float gamma) {
 	r = __toLinear(r, gamma);
 	g = __toLinear(g, gamma);
@@ -52,41 +88,11 @@ clr3f& clr3f::AsLinear(float gamma) {
 	return *this;
 }
 
-clr3f& clr3f::AsSRGB(float gamma) {
-	r = __toSRGB(r, gamma);
-	g = __toSRGB(g, gamma);
-	b = __toSRGB(b, gamma);
+clr3f& clr3f::AsSRGB(float _1_gamma) {
+	r = __toSRGB(r, _1_gamma);
+	g = __toSRGB(g, _1_gamma);
+	b = __toSRGB(b, _1_gamma);
 	return *this;
-}
-
-bool clr3f::IsZero() {
-	return b == 0.f && g == 0.f && r == 0.f;
-}
-
-float clr3f::__toLinear(float color, float gamma) {
-	if (color <= 0.0f) return 0.0f;
-	else if (color >= 1.0f) return 1.0f;
-	assert((color >= 0.0f) && (color <= 1.0f));
-	if (color <= 0.04045f) {
-		return color / 12.92f;
-	}
-	else {
-		const float a = 0.055f;
-		return powf((color + a) / (1.0f + a), gamma);
-	}
-}
-
-float clr3f::__toSRGB(float color, float gamma) {
-	if (color <= 0.0f) return 0.0f;
-	else if (color >= 1.0f) return 1.0f;
-	assert((color >= 0.0f) && (color <= 1.0f));
-	if (color <= 0.0031308f) {
-		return 12.92f * color;
-	}
-	else {
-		const float a = 0.055f;
-		return (1.0f + a) * powf(color, 1.0f / gamma) - a;
-	}
 }
 
 clr4f clr4f::operator*(float f) const {
@@ -137,6 +143,51 @@ clr4f& clr4f::operator/=(const clr4f& rhs) {
 	return *this;
 }
 
+clr4f clr4f::ToLinear(float gamma) {
+	return clr4f{
+		__toLinear(r, gamma),
+		__toLinear(g, gamma),
+		__toLinear(b, gamma),
+		a
+	};
+}
+
+clr4f clr4f::ToSRGB(float _1_gamma) {
+	return clr4f{
+		__toSRGB(r, _1_gamma),
+		__toSRGB(g, _1_gamma),
+		__toSRGB(b, _1_gamma),
+		a
+	};
+}
+
 clr4f operator+(float lhs, const clr4f& rhs) {
 	return rhs + lhs;
+}
+
+float __toSRGB(float c_linear, float _1_gamma) {
+	if (c_linear <= 0.0f) return 0.0f;
+	else if (c_linear >= 1.0f) return 1.0f;
+	assert((c_linear >= 0.0f) && (c_linear <= 1.0f));
+	if (c_linear <= 0.0031308f) {
+		return 12.92f * c_linear;
+	}
+	else {
+		const float a = 0.055f;
+		return (1.0f + a) * powf(c_linear, _1_gamma) - a;
+	}
+
+}
+
+float __toLinear(float c_srgb, float gamma) {
+	if (c_srgb <= 0.0f) return 0.0f;
+	else if (c_srgb >= 1.0f) return 1.0f;
+	assert((c_srgb >= 0.0f) && (c_srgb <= 1.0f));
+	if (c_srgb <= 0.04045f) {
+		return c_srgb / 12.92f;
+	}
+	else {
+		const float a = 0.055f;
+		return powf((c_srgb + a) / (1.0f + a), gamma);
+	}
 }

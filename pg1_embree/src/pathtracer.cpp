@@ -178,15 +178,16 @@ clr3f Pathtracer::DirectLighting(IntersectionEmbree& data) {
 	rtcInitIntersectContext(&context);
 	rtcIntersect1(scene.scene, &context, &rhit);
 
-	if (rhit.hit.geomID != RTC_INVALID_GEOMETRY_ID) {
+	if (rhit.hit.geomID != RTC_INVALID_GEOMETRY_ID || Options::Get().usePathtraching) {
 		float dotNormalLight = data.v_normal.DotProduct(v_light);
 
 		if (distanceToLight - rhit.ray.tfar < 0.01f && dotNormalLight > 0) {
 			float G = (dotNormalLight * v_lightNormal.DotProduct(-v_light)) / distanceToLightSquare;
 
-			RTCGeometry geometry = rtcGetGeometry(scene.scene, rhit.hit.geomID);
-			Material* material = (Material*)rtcGetGeometryUserData(geometry);
-			clr3f lightEmission = material->emission.AsColor();
+			//RTCGeometry geometry = rtcGetGeometry(scene.scene, rhit.hit.geomID);
+			/*Material* material = (Material*)rtcGetGeometryUserData(geometry);
+			clr3f lightEmission = material->emission.AsColor();*/
+			clr3f lightEmission = clr3f{ 20.f, 20.f, 20.f };
 
 			color = lightEmission * (data.dotNormalView * G * _1_lightPDF);
 		}
@@ -292,6 +293,18 @@ clr3f Pathtracer::TraceRay2(RTCRay& ray) {
 							fr = data.clrSpecular * sample.PDF * powerCosThetaR;
 							sample.dotNormalOmegaI = 1.f / sample.dotNormalOmegaI;
 						}
+
+						//float R = 1.f;
+						//float n2 = data.material->ior;
+						//float n1 = 1.f;
+						//float iorRatio = n1 / n2;
+						//float r0 = (n1 - n2) / (n1 + n2); r0 *= r0;
+
+						////fresnel (schlick) - reflected/refracted ratio
+						//float theta = data.dotNormalView;
+						//float minTheta = 1 - theta;
+						//R = r0 + (1 - r0) * minTheta * minTheta * minTheta * minTheta * minTheta;
+						//fr *= 1-R;
 					}
 					PDF *= sample.PDF;
 					PDF *= 1.f / xi;
