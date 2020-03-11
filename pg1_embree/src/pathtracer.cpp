@@ -58,7 +58,17 @@ clr3f Pathtracer::TraceRay(RTCRay& ray, int depth, float n1) {
 		if (!data.clrEmission.IsZero())
 			color = data.clrEmission;
 		else {
+			HemisphereSample sample;
+			clr3f fr;
+			float PDF = 1.f;
 
+			sample = Sampling::CosWeighted(data.v_normal);
+			PDF *= sample.PDF;
+			//Lambert BRDF
+			fr = data.clrDiffuse * M_1_PI;
+
+			RTCRay rayReflected = PrepareRay(data.p_rayHit, sample.omegaI);
+			color = TraceRay(rayReflected, depth + 1, n1) * fr * sample.dotNormalOmegaI * (1.f / PDF);
 		}
 
 	}
