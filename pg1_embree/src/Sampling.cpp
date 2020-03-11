@@ -61,7 +61,7 @@ HemisphereSample Sampling::CosWeighted(vec3f& v_normal) {
 	return sample;
 }
 
-HemisphereSample Sampling::CosLobe(const vec3f& v_normal, const vec3f& omegaO, float gamma) {
+HemisphereSample Sampling::CosLobe(const vec3f& v_normal, const vec3f& omegaO, float gamma, float& powerCosThetaR) {
 	HemisphereSample sample{};
 
 	float xi1 = Sampling::Random1() * 2.f * (float)M_PI;						//2*PI*xi1
@@ -85,10 +85,10 @@ HemisphereSample Sampling::CosLobe(const vec3f& v_normal, const vec3f& omegaO, f
 	sample.dotNormalOmegaI = omegaR.DotProduct(sample.omegaI);
 
 	//float powerCosThetaR = powf(sample.omegaI.DotProduct(omegaR), gamma);
-	float powerCosThetaR = powf(sample.dotNormalOmegaI, gamma);
+	powerCosThetaR = powf(sample.dotNormalOmegaI, gamma);
 
 	//pdf value
-	sample.PDF = ((gamma + 2) * powerCosThetaR) * (float)_1_2PI;
+	sample.PDF = (gamma + 2) * (float)_1_2PI;
 
 	//zeroes out all samples that are going underneath the surface
 	sample.invalid = v_normal.DotProduct(sample.omegaI) <= 0;

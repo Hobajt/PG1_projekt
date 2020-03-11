@@ -48,17 +48,17 @@ newmtl sphere1_mat
 	Ns 1000
 	Kd 0.5 0.5 0.1
 	Ks 0.9 0.9 0.4
-	shader 7
+	shader 3
 
 newmtl sphere2_mat	
 	Ns 50
   	Kd 0.9 0.9 0.5
 	Ks 0.8 0.8 0.6
-  	shader 7
+  	shader 3
 
 
 newmtl sphere3_mat
 	Ns 500
 	Kd 0.9 0.9 0.5
 	Ks 0.8 0.8 0.6
-	shader 7
+	shader 3

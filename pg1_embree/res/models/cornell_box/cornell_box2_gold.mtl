@@ -53,7 +53,7 @@ newmtl sphere2_mat
 	Ns 5
 	Kd 0.9 0.9 0.5
 	Ks 0.8 0.8 0.6
-	shader 7
+	shader 3
 
 newmtl sphere3_mat
 	Ns 32
@@ -73,16 +73,16 @@ newmtl white_phong
   	Ka 0.2 0.2 0.2
 	Kd 0.8 0.8 0.8
 	Ks 0.8 0.8 0.8
-  	shader 7
+  	shader 3
 
 newmtl black_phong
 	Ns 100
 	Kd 0.0 0.0 0.0
 	Ks 1.0 1.0 1.0
-	shader 7
+	shader 3
 
 newmtl milky_phong
 	Ns 1000
 	Kd 0.8 0.8 0.8
 	Ks 0.2 0.2 0.2
-	shader 7
+	shader 3

@@ -29,6 +29,16 @@ Pathtracer::~Pathtracer() {
 
 //================================================================================================================================================
 
+const float T = 12.f;
+
+clr3f& firefliesFix(clr3f& clr) {
+	float length = sqrtf(clr.r * clr.r + clr.g * clr.g + clr.b * clr.b);
+	if (length > T) {
+		clr *= (T / length);
+	}
+	return clr;
+}
+
 clr4f Pathtracer::get_pixel(const int x, const int y, const float t) {
 	clr3f pixel = { 0.f, 0.f, 0.f };
 	RTCRay primaryRay;
@@ -42,7 +52,10 @@ clr4f Pathtracer::get_pixel(const int x, const int y, const float t) {
 	primaryRay = camera_.GenerateRay(fx, fy);
 	pixel += TraceRay(primaryRay);
 
-	return pixel * _1_samples;
+	pixel = pixel * _1_samples;
+
+	return firefliesFix(pixel);
+	//return pixel;
 }
 
 clr3f Pathtracer::TraceRay(RTCRay& ray, int depth, float n1) {
@@ -70,13 +83,41 @@ clr3f Pathtracer::TraceRay(RTCRay& ray, int depth, float n1) {
 					PDF *= sample.PDF;
 
 					//Lambert BRDF
-					fr = data.clrDiffuse * M_1_PI;
+					fr = data.clrDiffuse * (float)M_1_PI;
 
 					nextRay = PrepareRay(data.p_rayHit, sample.omegaI);
 					color = TraceRay(nextRay, depth + 1, n1) * fr * sample.dotNormalOmegaI * (1.f / PDF);
 					break;
-				/*case ShaderType::Phong:
-					break;*/
+				case ShaderType::Phong:
+				{
+					float xi = Sampling::Random1();
+					float rhoDiffuse = data.clrDiffuse.LargestValue();
+					float rhoSpecular = data.clrSpecular.LargestValue();
+
+					//choose which part to sample (diffuse/specular)
+					if (xi * (rhoDiffuse + rhoSpecular) < rhoDiffuse) {
+						sample = Sampling::CosWeighted(data.v_normal);
+
+						fr = data.clrDiffuse * (float)M_1_PI;
+					}
+					else {
+						float gamma = data.material->shininess;
+						float powerCosThetaR;
+						sample = Sampling::CosLobe(data.v_normal, data.v_view, gamma, powerCosThetaR);
+
+						if (sample.invalid)		//incoming direction is coming from underneath the surface
+							fr = { 0.f, 0.f, 0.f };
+						else {
+							fr = data.clrSpecular * sample.PDF * powerCosThetaR;
+							sample.dotNormalOmegaI = 1.f / sample.dotNormalOmegaI;
+						}
+					}
+					PDF *= sample.PDF;
+
+					nextRay = PrepareRay(data.p_rayHit, sample.omegaI);
+					color = TraceRay(nextRay, depth + 1, n1) * fr * sample.dotNormalOmegaI * (1.f / PDF) * xi;
+				}
+					break;
 				case ShaderType::Glass:
 					color = GlassShading(data, depth, n1);
 					break;
