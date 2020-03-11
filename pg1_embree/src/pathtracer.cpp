@@ -59,7 +59,6 @@ clr3f Pathtracer::TraceRay(RTCRay& ray, int depth, float n1) {
 			color = data.clrEmission;
 		else {
 
-			color = data.clrDiffuse;
 		}
 
 	}
