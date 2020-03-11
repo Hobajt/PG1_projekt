@@ -10,6 +10,7 @@
 clr3f Pathtracer::defaultBackground = { 0.0f, 0.0f, 0.0f };
 const float T = 20.f;
 bool directLighting = true;
+bool useRecursive = true;
 
 Pathtracer::Pathtracer(const int width, const int height, const float fov_y, const vec3f view_from, const vec3f view_at, const char* config)
 	: SimpleGuiDX11(width, height), background(std::make_unique<BackgroundStatic>(defaultBackground)) {
@@ -24,6 +25,7 @@ Pathtracer::Pathtracer(const int width, const int height, const float fov_y, con
 	Sampling::InitGenerator();
 	IntersectionEmbree::convertMaterials = opt.materialToLinear;
 	directLighting = opt.directLighting;
+	useRecursive = opt.PT_recursive;
 }
 
 Pathtracer::~Pathtracer() {
@@ -46,13 +48,22 @@ clr4f Pathtracer::get_pixel(const int x, const int y, const float t) {
 	float fx = (float)x;
 	float fy = (float)y;
 
-	for (int i = 0; i < samples - 1; i++) {
-		primaryRay = camera_.GenerateRay(fx + Sampling::Random05(), fy + Sampling::Random05());
+	if (useRecursive) {
+		for (int i = 0; i < samples - 1; i++) {
+			primaryRay = camera_.GenerateRay(fx + Sampling::Random05(), fy + Sampling::Random05());
+			pixel += TraceRay(primaryRay);
+		}
+		primaryRay = camera_.GenerateRay(fx, fy);
 		pixel += TraceRay(primaryRay);
 	}
-	primaryRay = camera_.GenerateRay(fx, fy);
-	pixel += TraceRay(primaryRay);
-
+	else {
+		for (int i = 0; i < samples - 1; i++) {
+			primaryRay = camera_.GenerateRay(fx + Sampling::Random05(), fy + Sampling::Random05());
+			pixel += TraceRay2(primaryRay);
+		}
+		primaryRay = camera_.GenerateRay(fx, fy);
+		pixel += TraceRay2(primaryRay);
+	}
 	pixel = pixel * _1_samples;
 
 	return firefliesFix(pixel);
@@ -223,6 +234,105 @@ clr3f Pathtracer::GlassShading(IntersectionEmbree& data, int depth, float n1) {
 	return color;
 }
 
+clr3f Pathtracer::TraceRay2(RTCRay& ray) {
+	clr3f color = { 0.f, 0.f, 0.f };		//output color
+	clr3f T = { 1.f, 1.f, 1.f };			//transmission operator (accumulates light properties through bounces)
+	RTCRay nextRay = ray;
+	bool terminate = false;
+
+	for (int depth = 0; depth < maxDepth; depth++) {
+		IntersectionEmbree data = scene.IntersectRay(nextRay);
+
+		//terminate when nothing is hit
+		if (data.IntersectionFailed()) {
+			color += background->GetPixelColor(data.v_rayDir) * T;
+			break;
+		}
+
+		data.PrepareData(scene);
+
+		//lightsource was hit -> return its emission
+		if (!data.clrEmission.IsZero()) {
+			color += data.clrEmission * T;
+			break;
+		}
+
+		bool ray_directLighting = true;
+		HemisphereSample sample;
+		clr3f fr = clr3f{ 1.f, 1.f, 1.f };
+		float PDF = 1.f;
+
+		switch (data.material->shader) {
+			default:
+			case ShaderType::Lambert:
+				sample = Sampling::CosWeighted(data.v_normal);
+				PDF *= sample.PDF;
+				fr = data.clrDiffuse * (float)M_1_PI;	//Lambert BRDF
+				break;
+			case ShaderType::Phong:
+				{
+					float xi = Sampling::Random1();
+					float rhoDiffuse = data.clrDiffuse.LargestValue();
+					float rhoSpecular = data.clrSpecular.LargestValue();
+
+					//choose which part to sample (diffuse/specular)
+					if (xi * (rhoDiffuse + rhoSpecular) < rhoDiffuse) {
+						sample = Sampling::CosWeighted(data.v_normal);
+						fr = data.clrDiffuse * (float)M_1_PI;
+					}
+					else {
+						ray_directLighting = false;
+						float gamma = data.material->shininess;
+						float powerCosThetaR;
+						sample = Sampling::CosLobe(data.v_normal, data.v_view, gamma, powerCosThetaR);
+
+						if (sample.invalid)		//incoming direction is coming from underneath the surface
+							fr = { 0.f, 0.f, 0.f };
+						else {
+							fr = data.clrSpecular * sample.PDF * powerCosThetaR;
+							sample.dotNormalOmegaI = 1.f / sample.dotNormalOmegaI;
+						}
+					}
+					PDF *= sample.PDF;
+					PDF *= 1.f / xi;
+				}
+				break;
+			case ShaderType::Glass:
+				ray_directLighting = false;
+				color = GlassShading(data, depth, 1.f) * T;
+				terminate = true;
+				break;
+			case ShaderType::Mirror:
+				ray_directLighting = false;
+				sample.omegaI = data.v_rayDirReflected;
+				sample.dotNormalOmegaI = 1.f;
+				break;
+		}
+
+		//roulette (not sure if its ok)
+		float rouletteRho = 1.f;
+		if (!data.SurvivedRoulette(&rouletteRho))
+			break;
+		PDF *= rouletteRho;
+
+		//direct lighting (if enabled)
+		if (directLighting && ray_directLighting) {
+			color += DirectLighting(data) * fr * T;
+		}
+
+		if (terminate)
+			break;
+
+		//update transmission operator
+		T *= fr * sample.dotNormalOmegaI * (1.f / PDF);
+
+		//setup ray for next iteration
+		nextRay = PrepareRay(data.p_rayHit, sample.omegaI);
+	}
+
+	return color;
+}
+
 
 
 
@@ -253,7 +363,7 @@ int Pathtracer::InitDeviceAndScene(const char* config) {
 
 	// create a new scene bound to the specified device
 	scene.scene = rtcNewScene(device_);
-	rtcSetSceneFlags(scene.scene, RTC_SCENE_FLAG_ROBUST);
+	//rtcSetSceneFlags(scene.scene, RTC_SCENE_FLAG_ROBUST);
 
 	return S_OK;
 }

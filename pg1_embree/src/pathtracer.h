@@ -27,9 +27,16 @@ public:
 
 
 	clr4f get_pixel(const int x, const int y, const float t = 0.0f) override;
+
+	//Recursive pathtracing (more straightforward)
 	clr3f TraceRay(RTCRay& ray, int depth = 0, float n1 = 1.f);
+	//Non-recursive (roulette might not be done properly though).
+	clr3f TraceRay2(RTCRay& ray);
+
+	//Helper methods.
 	clr3f DirectLighting(IntersectionEmbree& data);
 	clr3f GlassShading(IntersectionEmbree& data, int depth, float n1);
+
 
 private:
 	std::vector<Surface*> surfaces_;
