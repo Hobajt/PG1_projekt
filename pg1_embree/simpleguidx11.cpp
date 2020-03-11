@@ -125,6 +125,8 @@ void SimpleGuiDX11::Producer() {
 		t += dt.count();
 		t0 = t1;
 
+		auto start = std::chrono::high_resolution_clock::now();
+
 		float _1_n = 1.f / (n + 1);
 		float nf = (float)n;
 
@@ -153,7 +155,10 @@ void SimpleGuiDX11::Producer() {
 			}
 		}
 
-		printf("[%d]\n", n);
+		auto end = std::chrono::high_resolution_clock::now();
+		float duration = (std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() / 1000.f);
+
+		printf("[%d] - %.2fs\n", n, duration);
 		n++;
 
 		// write rendering results

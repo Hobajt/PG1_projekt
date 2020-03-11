@@ -80,8 +80,6 @@ clr3f Pathtracer::TraceRay(RTCRay& ray, int depth, float n1) {
 					break;
 			}
 
-			
-			
 			PDF *= sample.PDF;
 			RTCRay rayReflected = PrepareRay(data.p_rayHit, sample.omegaI);
 			color = TraceRay(rayReflected, depth + 1, n1) * fr * sample.dotNormalOmegaI * (1.f / PDF);
