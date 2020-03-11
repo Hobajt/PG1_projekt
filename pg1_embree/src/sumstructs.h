@@ -49,6 +49,8 @@ public:
 	Material* material;
 	Texture* texDiffuse;
 	Coord2f texCoords;
+public:
+	static bool convertMaterials;
 };
 
 //Wrapper for scene data - cuz i will have to use geometry instead later on.

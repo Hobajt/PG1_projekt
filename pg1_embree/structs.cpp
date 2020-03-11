@@ -88,3 +88,55 @@ float clr3f::__toSRGB(float color, float gamma) {
 		return (1.0f + a) * powf(color, 1.0f / gamma) - a;
 	}
 }
+
+clr4f clr4f::operator*(float f) const {
+	return clr4f{ r * f,g * f,b * f,a };
+}
+
+clr4f clr4f::operator*(const clr4f& rhs) const {
+	return clr4f{ r * rhs.r,g * rhs.g,b * rhs.b, a };
+}
+
+clr4f& clr4f::operator*=(float f) {
+	r *= f;
+	g *= f;
+	b *= f;
+	return *this;
+}
+
+clr4f& clr4f::operator*=(const clr4f& rhs) {
+	r *= rhs.r;
+	g *= rhs.g;
+	b *= rhs.b;
+	return *this;
+}
+
+clr4f clr4f::operator+(const clr4f& rhs) const {
+	return clr4f{ r + rhs.r, g + rhs.g, b + rhs.b, a };
+}
+
+clr4f clr4f::operator+(float rhs) const {
+	return clr4f{ r + rhs, g + rhs, b + rhs, a };
+}
+
+clr4f& clr4f::operator+=(const clr4f& rhs) {
+	r += rhs.r;
+	g += rhs.g;
+	b += rhs.b;
+	return *this;
+}
+
+clr4f clr4f::operator/(const clr4f& rhs) const {
+	return clr4f{ r / rhs.r, g / rhs.g, b / rhs.b, a };
+}
+
+clr4f& clr4f::operator/=(const clr4f& rhs) {
+	r /= rhs.r;
+	g /= rhs.g;
+	b /= rhs.b;
+	return *this;
+}
+
+clr4f operator+(float lhs, const clr4f& rhs) {
+	return rhs + lhs;
+}

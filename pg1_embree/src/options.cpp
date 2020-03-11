@@ -47,6 +47,9 @@ Options Options::Load(std::string_view path) {
 				else if (line._Starts_with("fov ")) {
 					opts.fov = atof(value.data());
 				}
+				else if (line._Starts_with("convertToLinear ")) {
+					opts.materialToLinear = (bool)(atoi(value.data()));
+				}
 			}
 			printf("Loaded options from '%s'\n", path.data());
 		}

@@ -10,7 +10,22 @@ struct Triangle3ui { unsigned int v0, v1, v2; }; // indicies of a single triangl
 
 struct RTC_ALIGN(16) clr4f {
 	struct { float r, g, b, a; }; // a = 1 means that the pixel is opaque
+
+	clr4f operator * (float f) const;
+	clr4f operator * (const clr4f& rhs) const;
+	clr4f& operator *= (float f);
+	clr4f& operator *= (const clr4f& rhs);
+
+	clr4f operator + (const clr4f& rhs) const;
+	clr4f operator + (float rhs) const;
+	clr4f& operator += (const clr4f& rhs);
+
+
+	clr4f operator / (const clr4f& rhs) const;
+	clr4f& operator /= (const clr4f& rhs);
 };
+
+clr4f operator + (float lhs, const clr4f& rhs);
 
 struct clr3f {
 	float r, g, b;

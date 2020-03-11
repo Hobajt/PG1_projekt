@@ -22,6 +22,7 @@ Raytracer::Raytracer(const int width, const int height, const float fov_y, const
 	_1_samples = 1.f / samples;
 	maxDepth = opt.maxDepth;
 	Sampling::InitGenerator();
+	IntersectionEmbree::convertMaterials = opt.materialToLinear;
 }
 
 Raytracer::~Raytracer() {
@@ -120,7 +121,7 @@ RTCRay Raytracer::PrepareRay(vec3f& rOrg, vec3f& rDir) {
 	rOrg.SetupFromThis(ray.org_x, ray.org_y, ray.org_z);
 	rDir.SetupFromThis(ray.dir_x, ray.dir_y, ray.dir_z);
 
-	ray.tnear = 0.1f;
+	ray.tnear = 0.01f;
 	ray.tfar = FLT_MAX;
 
 	ray.flags = 0;

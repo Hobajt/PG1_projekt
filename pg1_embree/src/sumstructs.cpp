@@ -3,6 +3,8 @@
 
 #include "material.h"
 
+bool IntersectionEmbree::convertMaterials = false;
+
 IntersectionEmbree SceneData::IntersectRay(RTCRay& ray) {
 	IntersectionEmbree data = IntersectionEmbree(SetupRayHitStructure(ray));
 	RTCIntersectContext context;
@@ -44,7 +46,11 @@ void IntersectionEmbree::PrepareData(const SceneData& scene) {
 	clrSpecular = material->specular.AsColor();
 	clrAmbient = material->ambient.AsColor();
 
-	//TODO: convert clrs to linear if needed
+	if (convertMaterials) {
+		clrDiffuse.AsLinear();
+		clrSpecular.AsLinear();
+		clrAmbient.AsLinear();
+	}
 
 	//extract normal
 	Normal3f n;

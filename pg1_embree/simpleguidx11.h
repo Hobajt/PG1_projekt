@@ -50,4 +50,7 @@ private:
 	std::mutex tex_data_lock_;
 		
 	std::atomic<bool> finish_request_{ false };	
+
+	int n;
+	float* acc;
 };

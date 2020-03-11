@@ -74,6 +74,7 @@ clr3f Texture::get_texel(const float u, const float v) const {
 	const int offset = y * scan_width_ + x * pixel_size_;
 
 	float b, g, r;
+	clr3f color;
 
 	//loading from .HDR - already in linear (floats instead of uchars)
 	if (pixel_size_ == 12) {
@@ -81,14 +82,17 @@ clr3f Texture::get_texel(const float u, const float v) const {
 		b = a[2];
 		g = a[1];
 		r = a[0];
+		color = clr3f{ r,g,b };
 	}
 	else {
 		b = data_[offset] / 255.0f;
 		g = data_[offset + 1] / 255.0f;
 		r = data_[offset + 2] / 255.0f;
+
+		color = clr3f{ r,g,b }.AsLinear();
 	}
 
-	return clr3f{ r, g, b };
+	return color;
 }
 
 int Texture::width() const

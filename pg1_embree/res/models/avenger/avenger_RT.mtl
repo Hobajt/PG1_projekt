@@ -10,7 +10,7 @@ newmtl black_plastic
 	shader 3
         
 newmtl green_plastic_transparent
-	Ke 0.4 0.001 0.4
+	At 0.4 0.001 0.4
 	Ni 1.5
 	shader 4
 
