@@ -25,6 +25,8 @@ struct IntersectionEmbree {
 	void PrepareData(const SceneData& scene);
 
 	inline bool IntersectionFailed() const { return rhit.hit.geomID == RTC_INVALID_GEOMETRY_ID; }
+
+	bool SurvivedRoulette(float* rho);
 public:
 	RTCRayHit rhit;
 

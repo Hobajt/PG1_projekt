@@ -8,6 +8,7 @@
 #include "background.h"
 
 clr3f Pathtracer::defaultBackground = { 0.0f, 0.0f, 0.0f };
+const float T = 20.f;
 
 Pathtracer::Pathtracer(const int width, const int height, const float fov_y, const vec3f view_from, const vec3f view_at, const char* config)
 	: SimpleGuiDX11(width, height), background(std::make_unique<BackgroundStatic>(defaultBackground)) {
@@ -28,8 +29,6 @@ Pathtracer::~Pathtracer() {
 }
 
 //================================================================================================================================================
-
-const float T = 12.f;
 
 clr3f& firefliesFix(clr3f& clr) {
 	float length = sqrtf(clr.r * clr.r + clr.g * clr.g + clr.b * clr.b);
@@ -68,12 +67,15 @@ clr3f Pathtracer::TraceRay(RTCRay& ray, int depth, float n1) {
 	else {
 		data.PrepareData(scene);
 
+		float rouletteRho = 1.f;
+
 		if (!data.clrEmission.IsZero())
 			color = data.clrEmission;
+		else if (!data.SurvivedRoulette(&rouletteRho)) {}
 		else {
 			HemisphereSample sample;
 			clr3f fr = clr3f{ 1.f, 1.f, 1.f };
-			float PDF = 1.f;
+			float PDF = rouletteRho;
 			RTCRay nextRay;
 
 			switch (data.material->shader) {

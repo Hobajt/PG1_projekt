@@ -2,6 +2,7 @@
 #include "sumstructs.h"
 
 #include "material.h"
+#include "Sampling.h"
 
 bool IntersectionEmbree::convertMaterials = false;
 
@@ -68,4 +69,22 @@ void IntersectionEmbree::PrepareData(const SceneData& scene) {
 
 	dotNormalRay = v_normal.DotProduct(v_rayDir);
 	dotNormalView = -dotNormalRay;
+}
+
+bool IntersectionEmbree::SurvivedRoulette(float* rho) {
+	*rho = 1.f;
+
+	switch (material->shader) {
+		case ShaderType::Glass:
+		case ShaderType::Mirror:
+			return true;
+		case ShaderType::Lambert:
+			*rho = clrDiffuse.LargestValue();
+			break;
+		case ShaderType::Phong:
+			*rho = max(clrDiffuse.LargestValue(), clrSpecular.LargestValue());
+			break;
+	}
+
+	return Sampling::Random1() <= *rho;
 }
