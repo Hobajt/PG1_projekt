@@ -22,6 +22,7 @@ public:
 	vec3f omnilight_clr{ vec3f{1.f,1.f,1.f} };
 
 	bool materialToLinear{ false };
+	bool noBackground{ false };
 public:
 	static inline Options& Get() { return instance; }
 private:

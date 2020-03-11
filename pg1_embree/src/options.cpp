@@ -44,11 +44,17 @@ Options Options::Load(std::string_view path) {
 				else if (line._Starts_with("viewAt ")) {
 					sscanf(value.data(), "%f %f %f", &opts.viewAt.x, &opts.viewAt.y, &opts.viewAt.z);
 				}
+				else if (line._Starts_with("light_pos ")) {
+					sscanf(value.data(), "%f %f %f", &opts.omnilight_pos.x, &opts.omnilight_pos.y, &opts.omnilight_pos.z);
+				}
 				else if (line._Starts_with("fov ")) {
 					opts.fov = atof(value.data());
 				}
 				else if (line._Starts_with("convertToLinear ")) {
 					opts.materialToLinear = (bool)(atoi(value.data()));
+				}
+				else if (line._Starts_with("no_background ")) {
+					opts.noBackground = (bool)(atoi(value.data()));
 				}
 			}
 			printf("Loaded options from '%s'\n", path.data());

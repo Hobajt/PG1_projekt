@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "raytracer.h"
+#include "pathtracer.h"
 #include "objloader.h"
 #include "tutorials.h"
 
@@ -7,11 +7,9 @@
 #include "Sampling.h"
 #include "background.h"
 
-clr3f Raytracer::defaultBackground = { 0.1f, 0.1f, 0.1f };
-vec3f Raytracer::p_light = vec3f{ 0.f, 0.f, 0.f };
-vec3f Raytracer::lightClr = vec3f{ 0.f, 0.f, 0.f };
+clr3f Pathtracer::defaultBackground = { 0.0f, 0.0f, 0.0f };
 
-Raytracer::Raytracer(const int width, const int height, const float fov_y, const vec3f view_from, const vec3f view_at, const char* config)
+Pathtracer::Pathtracer(const int width, const int height, const float fov_y, const vec3f view_from, const vec3f view_at, const char* config)
 	: SimpleGuiDX11(width, height), background(std::make_unique<BackgroundStatic>(defaultBackground)) {
 	InitDeviceAndScene(config);
 
@@ -23,23 +21,21 @@ Raytracer::Raytracer(const int width, const int height, const float fov_y, const
 	maxDepth = opt.maxDepth;
 	Sampling::InitGenerator();
 	IntersectionEmbree::convertMaterials = opt.materialToLinear;
-	p_light = Options::Get().omnilight_pos;
-	lightClr = Options::Get().omnilight_clr;
 }
 
-Raytracer::~Raytracer() {
+Pathtracer::~Pathtracer() {
 	ReleaseDeviceAndScene();
 }
 
 //================================================================================================================================================
 
-clr4f Raytracer::get_pixel(const int x, const int y, const float t) {
+clr4f Pathtracer::get_pixel(const int x, const int y, const float t) {
 	clr3f pixel = { 0.f, 0.f, 0.f };
 	RTCRay primaryRay;
 	float fx = (float)x;
 	float fy = (float)y;
 
-	for (int i = 0; i < samples-1; i++) {
+	for (int i = 0; i < samples - 1; i++) {
 		primaryRay = camera_.GenerateRay(fx + Sampling::Random05(), fy + Sampling::Random05());
 		pixel += TraceRay(primaryRay);
 	}
@@ -49,69 +45,29 @@ clr4f Raytracer::get_pixel(const int x, const int y, const float t) {
 	return pixel * _1_samples;
 }
 
-clr3f Raytracer::TraceRay(RTCRay& ray, int depth, float n1) {
+clr3f Pathtracer::TraceRay(RTCRay& ray, int depth, float n1) {
 	clr3f color = { 0.f, 0.f, 0.f };
 
 	IntersectionEmbree data = scene.IntersectRay(ray);
-	if (depth >= maxDepth) {}
-	else if (data.IntersectionFailed()) {
+	if (data.IntersectionFailed() || depth >= maxDepth) {
 		return background->GetPixelColor(data.v_rayDir);
 	}
 	else {
 		data.PrepareData(scene);
 
-		vec3f v_light = (p_light - data.p_rayHit).normalize();
-		clr3f clrPhong = data.clrAmbient;
-		if (IsLightVisible(data, v_light)) {
-			float dotNormalLight = data.v_normal.DotProduct(v_light);
-			vec3f v_lightReflected = (2.f * dotNormalLight) * data.v_normal - v_light;
-			float specComp = powf(max(data.v_view.DotProduct(v_lightReflected), 0), data.material->shininess);
-			clrPhong += data.clrDiffuse * data.dotNormalView + data.clrSpecular * specComp;
+		if (!data.clrEmission.IsZero())
+			color = data.clrEmission;
+		else {
+
+			color = data.clrDiffuse;
 		}
 
-		//fresnel variables
-		float R = 1.f;
-		float n2 = n1 == 1.f ? data.material->ior : 1.f;
-		float iorRatio = n1 / n2;
-		float r0 = (n1 - n2) / (n1 + n2); r0 *= r0;
-
-		//refraction
-		float refractionRootVal = 1 - (iorRatio * iorRatio) * (1 - data.dotNormalRay * data.dotNormalRay);
-		if (refractionRootVal >= 0) {
-			vec3f v_rayDirRefracted = (iorRatio * data.v_rayDir - (iorRatio * data.dotNormalRay + sqrtf(refractionRootVal)) * data.v_normal).normalize();
-			float dotNormalRayRefracted = data.v_normal.DotProduct(-v_rayDirRefracted);
-
-			//fresnel (schlick) - reflected/refracted ratio
-			float theta = n1 <= n2 ? data.dotNormalView : dotNormalRayRefracted;
-			float minTheta = 1 - theta;
-			R = r0 + (1 - r0) * minTheta * minTheta * minTheta * minTheta * minTheta;
-
-			//only do refraction for glass surfaces
-			if (data.material->shader == ShaderType::Glass) {
-				RTCRay rayRefracted = PrepareRay(data.p_rayHit, v_rayDirRefracted);
-				color = TraceRay(rayRefracted, depth + 1, n2) * (1.f - R);
-			}
-		}
-
-		//reflection
-		RTCRay rayReflected = PrepareRay(data.p_rayHit, data.v_rayDirReflected);
-		color += TraceRay(rayReflected, depth + 1, n1)* R;
-
-		//beer-lambert attenuation
-		float l = n1 == 1.f ? 0.f : data.rhit.ray.tfar;
-		clr3f T_bl = data.clrAttenuation * -l;
-		T_bl = { expf(T_bl.r), expf(T_bl.g), expf(T_bl.b) };
-		color *= T_bl;
-
-		//final color
-		if (data.material->shader != ShaderType::Glass)
-			color += clrPhong;
 	}
 
 	return color;
 }
 
-bool Raytracer::IsLightVisible(IntersectionEmbree& data, vec3f& v_light) {
+bool Pathtracer::IsLightVisible(IntersectionEmbree& data, vec3f& v_light) {
 	RTCRay shadowRay = PrepareRay(data.p_rayHit, v_light);
 	RTCRayHit rhit = SceneData::SetupRayHitStructure(shadowRay);
 
@@ -127,7 +83,7 @@ bool Raytracer::IsLightVisible(IntersectionEmbree& data, vec3f& v_light) {
 
 //================================================================================================================================================
 
-RTCRay Raytracer::PrepareRay(vec3f& rOrg, vec3f& rDir) {
+RTCRay Pathtracer::PrepareRay(vec3f& rOrg, vec3f& rDir) {
 	RTCRay ray = RTCRay();
 	rOrg.SetupFromThis(ray.org_x, ray.org_y, ray.org_z);
 	rDir.SetupFromThis(ray.dir_x, ray.dir_y, ray.dir_z);
@@ -143,7 +99,7 @@ RTCRay Raytracer::PrepareRay(vec3f& rOrg, vec3f& rDir) {
 	return ray;
 }
 
-int Raytracer::InitDeviceAndScene(const char* config) {
+int Pathtracer::InitDeviceAndScene(const char* config) {
 	device_ = rtcNewDevice(config);
 	error_handler(nullptr, rtcGetDeviceError(device_), "Unable to create a new device.\n");
 	rtcSetDeviceErrorFunction(device_, error_handler, nullptr);
@@ -157,14 +113,14 @@ int Raytracer::InitDeviceAndScene(const char* config) {
 	return S_OK;
 }
 
-int Raytracer::ReleaseDeviceAndScene() {
+int Pathtracer::ReleaseDeviceAndScene() {
 	rtcReleaseScene(scene.scene);
 	rtcReleaseDevice(device_);
 
 	return S_OK;
 }
 
-void Raytracer::LoadScene(const std::string file_name) {
+void Pathtracer::LoadScene(const std::string file_name) {
 	const int no_surfaces = LoadOBJ(file_name.c_str(), surfaces_, materials_);
 
 	// surfaces loop
@@ -224,7 +180,7 @@ void Raytracer::LoadScene(const std::string file_name) {
 	rtcCommitScene(scene.scene);
 }
 
-int Raytracer::Ui() {
+int Pathtracer::Ui() {
 	static float f = 0.0f;
 	static int counter = 0;
 

@@ -58,6 +58,5 @@ struct SceneData {
 	RTCScene scene;
 
 	IntersectionEmbree IntersectRay(RTCRay& ray);
-private:
-	RTCRayHit SetupRayHitStructure(RTCRay& ray);
+	static RTCRayHit SetupRayHitStructure(RTCRay& ray);
 };

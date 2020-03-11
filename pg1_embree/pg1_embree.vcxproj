@@ -118,6 +118,7 @@
     <ClInclude Include="matrix3x3.h" />
     <ClInclude Include="mymath.h" />
     <ClInclude Include="objloader.h" />
+    <ClInclude Include="src\pathtracer.h" />
     <ClInclude Include="raytracer.h" />
     <ClInclude Include="simpleguidx11.h" />
     <ClInclude Include="src\application.h" />
@@ -153,6 +154,7 @@
     <ClCompile Include="src\application.cpp" />
     <ClCompile Include="src\background.cpp" />
     <ClCompile Include="src\options.cpp" />
+    <ClCompile Include="src\pathtracer.cpp" />
     <ClCompile Include="src\Sampling.cpp" />
     <ClCompile Include="src\sumstructs.cpp" />
     <ClCompile Include="stdafx.cpp">

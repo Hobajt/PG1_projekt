@@ -2,7 +2,7 @@
 #include "simpleguidx11.h"
 
 constexpr float _1_24f = 1.f / 2.4f;
-constexpr float exposure = 2.5f;
+constexpr float exposure = 1.5f;
 
 SimpleGuiDX11::SimpleGuiDX11(const int width, const int height) {
 	width_ = width;
@@ -105,10 +105,10 @@ clr4f AsSRGB(const clr4f& c, float _1_gamma = _1_24f) {
 	};
 }
 
-clr4f& Tonemapping(clr4f& clr) {
-	clr *= exposure;
-	clr = clr / (1.f + clr);
-	return clr;
+clr4f Tonemapping(clr4f& clr) {
+	clr4f c = clr * exposure;
+	c = c / (1.f + c);
+	return c;
 }
 
 void SimpleGuiDX11::Producer() {
@@ -140,9 +140,10 @@ void SimpleGuiDX11::Producer() {
 				clr = (pixel + clr * nf) * _1_n;
 
 				clr4f& res = (clr4f&)(local_data[offset]);
+				//res = AsSRGB(Tonemapping(clr));
 				res = AsSRGB(clr);
 				//res = clr;
-				//res = Tonemapping(res);
+				/*res = Tonemapping(res);*/
 
 				/*local_data[offset] = pixel.r;
 				local_data[offset + 1] = pixel.g;
