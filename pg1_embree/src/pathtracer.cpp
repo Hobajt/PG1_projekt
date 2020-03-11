@@ -61,28 +61,32 @@ clr3f Pathtracer::TraceRay(RTCRay& ray, int depth, float n1) {
 			HemisphereSample sample;
 			clr3f fr = clr3f{ 1.f, 1.f, 1.f };
 			float PDF = 1.f;
+			RTCRay nextRay;
 
 			switch (data.material->shader) {
 				default:
 				case ShaderType::Lambert:
 					sample = Sampling::CosWeighted(data.v_normal);
+					PDF *= sample.PDF;
 
 					//Lambert BRDF
 					fr = data.clrDiffuse * M_1_PI;
+
+					nextRay = PrepareRay(data.p_rayHit, sample.omegaI);
+					color = TraceRay(nextRay, depth + 1, n1) * fr * sample.dotNormalOmegaI * (1.f / PDF);
 					break;
 				/*case ShaderType::Phong:
-					break;
-				case ShaderType::Glass:
 					break;*/
+				case ShaderType::Glass:
+					color = GlassShading(data, depth, n1);
+					break;
 				case ShaderType::Mirror:
-					sample.omegaI = data.v_rayDirReflected;
-					sample.dotNormalOmegaI = sample.PDF = 1.f;
+					nextRay = PrepareRay(data.p_rayHit, data.v_rayDirReflected);
+					color = TraceRay(nextRay, depth + 1, n1);
 					break;
 			}
 
-			PDF *= sample.PDF;
-			RTCRay rayReflected = PrepareRay(data.p_rayHit, sample.omegaI);
-			color = TraceRay(rayReflected, depth + 1, n1) * fr * sample.dotNormalOmegaI * (1.f / PDF);
+			
 		}
 
 	}
@@ -90,15 +94,43 @@ clr3f Pathtracer::TraceRay(RTCRay& ray, int depth, float n1) {
 	return color;
 }
 
-bool Pathtracer::IsLightVisible(IntersectionEmbree& data, vec3f& v_light) {
-	RTCRay shadowRay = PrepareRay(data.p_rayHit, v_light);
-	RTCRayHit rhit = SceneData::SetupRayHitStructure(shadowRay);
+clr3f Pathtracer::GlassShading(IntersectionEmbree& data, int depth, float n1) {
+	clr3f color = {0.f, 0.f, 0.f};
 
-	RTCIntersectContext context;
-	rtcInitIntersectContext(&context);
-	rtcIntersect1(scene.scene, &context, &rhit);
+	//fresnel variables
+	float R = 1.f;
+	float n2 = n1 == 1.f ? data.material->ior : 1.f;
+	float iorRatio = n1 / n2;
+	float r0 = (n1 - n2) / (n1 + n2); r0 *= r0;
 
-	return rhit.hit.geomID == RTC_INVALID_GEOMETRY_ID;
+	float dotNormalRay = data.v_normal.DotProduct(data.v_rayDir);
+
+	//refraction
+	float refractionRootVal = 1 - (iorRatio * iorRatio) * (1 - dotNormalRay * dotNormalRay);
+	if (refractionRootVal >= 0) {
+		vec3f v_rayDirRefracted = (iorRatio * data.v_rayDir - (iorRatio * dotNormalRay + sqrtf(refractionRootVal)) * data.v_normal).normalize();
+		float dotNormalRayRefr = data.v_normal.DotProduct(-v_rayDirRefracted);
+
+		//fresnel (schlick) - reflected/refracted ratio
+		float theta = n1 <= n2 ? data.dotNormalView : dotNormalRayRefr;
+		float minTheta = 1 - theta;
+		R = r0 + (1 - r0) * minTheta * minTheta * minTheta * minTheta * minTheta;
+
+		RTCRay rayRefracted = PrepareRay(data.p_rayHit, v_rayDirRefracted);
+		color = TraceRay(rayRefracted, depth + 1, n2) * (1.f - R);
+	}
+
+	//reflection
+	RTCRay rayReflected = PrepareRay(data.p_rayHit, data.v_rayDirReflected);
+	color += TraceRay(rayReflected, depth + 1, n1) * R;
+
+	//beer-lambert attenuation
+	float l = n1 == 1.f ? 0.f : data.rhit.ray.tfar;
+	clr3f T_bl = data.clrAttenuation * -l;
+	T_bl = { expf(T_bl.r), expf(T_bl.g), expf(T_bl.b) };
+	color *= T_bl;
+
+	return color;
 }
 
 
