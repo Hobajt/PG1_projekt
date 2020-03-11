@@ -7,7 +7,7 @@ newmtl black_plastic
 	Ka 0.01 0.01 0.01
 	Kd 0.2 0.2 0.2
 	Ks 0.2 0.2 0.2
-	shader 7
+	shader 3
         
 newmtl green_plastic_transparent
 	At 0.4 0.001 0.4
@@ -18,8 +18,9 @@ newmtl white_plastic
 	Ns 20
 	Ni 1.460
 	Ka 0.01 0.01 0.01
+	Ks 0.0 0.0 0.0
 	Kd 0.75 0.75 0.75
-	shader 7
+	shader 3
           
 newmtl white_plastic_4150p04
 	Ns 20
@@ -28,7 +29,7 @@ newmtl white_plastic_4150p04
 	Kd 0.8 0.8 0.8
 	Ks 0.1 0.1 0.1
 	map_Kd 4150p04.jpg
-	shader 7
+	shader 3
 
 newmtl white_plastic_3069bp13
 	Ns 20
@@ -37,7 +38,7 @@ newmtl white_plastic_3069bp13
 	Kd 0.8 0.8 0.8
 	Ks 0.1 0.1 0.1
 	map_Kd 3069bp13.jpg
-	shader 7
+	shader 3
 
 newmtl white_light
 	Ka 0.1 0.1 0.1
