@@ -23,6 +23,8 @@ public:
 
 	bool materialToLinear{ false };
 	bool noBackground{ false };
+	bool directLighting{ true };
+	bool usePathtraching{ true };
 public:
 	static inline Options& Get() { return instance; }
 private:

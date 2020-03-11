@@ -9,6 +9,7 @@
 
 clr3f Pathtracer::defaultBackground = { 0.0f, 0.0f, 0.0f };
 const float T = 20.f;
+bool directLighting = true;
 
 Pathtracer::Pathtracer(const int width, const int height, const float fov_y, const vec3f view_from, const vec3f view_at, const char* config)
 	: SimpleGuiDX11(width, height), background(std::make_unique<BackgroundStatic>(defaultBackground)) {
@@ -22,6 +23,7 @@ Pathtracer::Pathtracer(const int width, const int height, const float fov_y, con
 	maxDepth = opt.maxDepth;
 	Sampling::InitGenerator();
 	IntersectionEmbree::convertMaterials = opt.materialToLinear;
+	directLighting = opt.directLighting;
 }
 
 Pathtracer::~Pathtracer() {
@@ -69,13 +71,14 @@ clr3f Pathtracer::TraceRay(RTCRay& ray, int depth, float n1) {
 
 		float rouletteRho = 1.f;
 
-		if (!data.clrEmission.IsZero())
+		if (!data.SurvivedRoulette(&rouletteRho)) {}
+		else if (!data.clrEmission.IsZero())
 			color = data.clrEmission;
-		else if (!data.SurvivedRoulette(&rouletteRho)) {}
 		else {
 			HemisphereSample sample;
 			clr3f fr = clr3f{ 1.f, 1.f, 1.f };
 			float PDF = rouletteRho;
+			bool ray_directLighting = true;
 			RTCRay nextRay;
 
 			switch (data.material->shader) {
@@ -99,10 +102,10 @@ clr3f Pathtracer::TraceRay(RTCRay& ray, int depth, float n1) {
 					//choose which part to sample (diffuse/specular)
 					if (xi * (rhoDiffuse + rhoSpecular) < rhoDiffuse) {
 						sample = Sampling::CosWeighted(data.v_normal);
-
 						fr = data.clrDiffuse * (float)M_1_PI;
 					}
 					else {
+						ray_directLighting = false;
 						float gamma = data.material->shininess;
 						float powerCosThetaR;
 						sample = Sampling::CosLobe(data.v_normal, data.v_view, gamma, powerCosThetaR);
@@ -122,16 +125,60 @@ clr3f Pathtracer::TraceRay(RTCRay& ray, int depth, float n1) {
 					break;
 				case ShaderType::Glass:
 					color = GlassShading(data, depth, n1);
+					ray_directLighting = false;
 					break;
 				case ShaderType::Mirror:
 					nextRay = PrepareRay(data.p_rayHit, data.v_rayDirReflected);
 					color = TraceRay(nextRay, depth + 1, n1);
+					ray_directLighting = false;
 					break;
 			}
 
-			
+
+			//add direct lighting (if enabled)
+			if (directLighting && ray_directLighting) {
+				color = color + DirectLighting(data) * fr;
+			}
 		}
 
+	}
+
+	return color;
+}
+
+clr3f Pathtracer::DirectLighting(IntersectionEmbree& data) {
+	clr3f color = { 0.f, 0.f, 0.f };
+
+	//sample random point on light source
+	vec3f p_light = vec3f{ -50.f + 100.f * Sampling::Random1(),-50.f + 100.f * Sampling::Random1(),490.f };
+	vec3f v_lightNormal = vec3f{ 0.f, 0.f, -1.f };
+	float _1_lightPDF = 10000.f;		//PDF = 1/light's surface = 1/10000 (100x100)
+
+	//intermediate values
+	vec3f v_hitToLight = p_light - data.p_rayHit;
+	vec3f v_light = v_hitToLight.normalized();
+	float distanceToLightSquare = v_hitToLight.SqrL2Norm();
+	float distanceToLight = sqrtf(distanceToLightSquare);
+
+	//intersect shadow ray with scene
+	RTCRay shadowRay = PrepareRay(data.p_rayHit, v_light);
+	RTCRayHit rhit = SceneData::SetupRayHitStructure(shadowRay);
+	RTCIntersectContext context;
+	rtcInitIntersectContext(&context);
+	rtcIntersect1(scene.scene, &context, &rhit);
+
+	if (rhit.hit.geomID != RTC_INVALID_GEOMETRY_ID) {
+		float dotNormalLight = data.v_normal.DotProduct(v_light);
+
+		if (distanceToLight - rhit.ray.tfar < 0.01f && dotNormalLight > 0) {
+			float G = (dotNormalLight * v_lightNormal.DotProduct(-v_light)) / distanceToLightSquare;
+
+			RTCGeometry geometry = rtcGetGeometry(scene.scene, rhit.hit.geomID);
+			Material* material = (Material*)rtcGetGeometryUserData(geometry);
+			clr3f lightEmission = material->emission.AsColor();
+
+			color = lightEmission * (data.dotNormalView * G * _1_lightPDF);
+		}
 	}
 
 	return color;

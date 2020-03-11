@@ -28,6 +28,7 @@ public:
 
 	clr4f get_pixel(const int x, const int y, const float t = 0.0f) override;
 	clr3f TraceRay(RTCRay& ray, int depth = 0, float n1 = 1.f);
+	clr3f DirectLighting(IntersectionEmbree& data);
 	clr3f GlassShading(IntersectionEmbree& data, int depth, float n1);
 
 private:

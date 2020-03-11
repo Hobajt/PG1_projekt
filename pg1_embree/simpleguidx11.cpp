@@ -142,7 +142,6 @@ void SimpleGuiDX11::Producer() {
 				clr = (pixel + clr * nf) * _1_n;
 
 				clr4f& res = (clr4f&)(local_data[offset]);
-				//res = AsSRGB(Tonemapping(clr));
 				res = AsSRGB(clr);
 				//res = clr;
 				/*res = Tonemapping(res);*/

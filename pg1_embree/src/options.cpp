@@ -56,6 +56,12 @@ Options Options::Load(std::string_view path) {
 				else if (line._Starts_with("no_background ")) {
 					opts.noBackground = (bool)(atoi(value.data()));
 				}
+				else if (line._Starts_with("direct_lighting ")) {
+					opts.directLighting = (bool)(atoi(value.data()));
+				}
+				else if (line._Starts_with("use_pathtracing ")) {
+					opts.usePathtraching = (bool)(atoi(value.data()));
+				}
 			}
 			printf("Loaded options from '%s'\n", path.data());
 		}
