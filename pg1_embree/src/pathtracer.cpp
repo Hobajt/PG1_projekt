@@ -7,13 +7,13 @@
 #include "Sampling.h"
 #include "background.h"
 
-clr3f Pathtracer::defaultBackground = { 0.0f, 0.0f, 0.0f };
+clr3f Pathtracer::defaultBackground = { 0.01f, 0.02f, 0.02f };
 const float T = 20.f;
 bool directLighting = true;
 bool useRecursive = true;
 
 Pathtracer::Pathtracer(const int width, const int height, const float fov_y, const vec3f view_from, const vec3f view_at, const char* config)
-	: SimpleGuiDX11(width, height), background(std::make_unique<BackgroundStatic>(defaultBackground)) {
+	: SimpleGuiDX11(width, height), background(std::make_unique<BackgroundStatic>(defaultBackground)), scene(SceneData(Options::Get().useGeometry)) {
 	InitDeviceAndScene(config);
 
 	camera_ = Camera(width, height, fov_y, view_from, view_at);
@@ -23,7 +23,7 @@ Pathtracer::Pathtracer(const int width, const int height, const float fov_y, con
 	_1_samples = 1.f / samples;
 	maxDepth = opt.maxDepth;
 	Sampling::InitGenerator();
-	IntersectionEmbree::convertMaterials = opt.materialToLinear;
+	IntersectionData::convertMaterials = opt.materialToLinear;
 	directLighting = opt.directLighting;
 	useRecursive = opt.PT_recursive;
 }
@@ -73,12 +73,12 @@ clr4f Pathtracer::get_pixel(const int x, const int y, const float t) {
 clr3f Pathtracer::TraceRay(RTCRay& ray, int depth, float n1) {
 	clr3f color = { 0.f, 0.f, 0.f };
 
-	IntersectionEmbree data = scene.IntersectRay(ray);
+	IntersectionData data = scene.IntersectRay(ray);
 	if (data.IntersectionFailed() || depth >= maxDepth) {
 		return background->GetPixelColor(data.v_rayDir);
 	}
 	else {
-		data.PrepareData(scene);
+		scene.PrepareData(data);
 
 		float rouletteRho = 1.f;
 
@@ -157,13 +157,21 @@ clr3f Pathtracer::TraceRay(RTCRay& ray, int depth, float n1) {
 	return color;
 }
 
-clr3f Pathtracer::DirectLighting(IntersectionEmbree& data) {
+clr3f Pathtracer::DirectLighting(IntersectionData& data) {
 	clr3f color = { 0.f, 0.f, 0.f };
 
 	//sample random point on light source
-	vec3f p_light = vec3f{ -50.f + 100.f * Sampling::Random1(),-50.f + 100.f * Sampling::Random1(),490.f };
-	vec3f v_lightNormal = vec3f{ 0.f, 0.f, -1.f };
-	float _1_lightPDF = 10000.f;		//PDF = 1/light's surface = 1/10000 (100x100)
+
+	//light source for cornell box
+	//vec3f p_light = vec3f{ -50.f + 100.f * Sampling::Random1(),-50.f + 100.f * Sampling::Random1(),490.f };
+	//vec3f v_lightNormal = vec3f{ 0.f, 0.f, -1.f };
+	//float _1_lightPDF = 10000.f;		//PDF = 1/light's surface = 1/10000 (100x100)
+
+	//light source for sphere test
+	float zSample = Sampling::Random1();
+	vec3f p_light = vec3f{ -1 + 2.f * Sampling::Random1(), 10.5f - 1.5f * zSample,10.5f - 1.5f * zSample };
+	vec3f v_lightNormal = vec3f{ 0.f, -0.707f, -0.707f };
+	float _1_lightPDF = 4.f;
 
 	//intermediate values
 	vec3f v_hitToLight = p_light - data.p_rayHit;
@@ -176,18 +184,18 @@ clr3f Pathtracer::DirectLighting(IntersectionEmbree& data) {
 	RTCRayHit rhit = SceneData::SetupRayHitStructure(shadowRay);
 	RTCIntersectContext context;
 	rtcInitIntersectContext(&context);
-	rtcIntersect1(scene.scene, &context, &rhit);
+	rtcIntersect1(scene.scene->scene, &context, &rhit);
 
-	if (rhit.hit.geomID != RTC_INVALID_GEOMETRY_ID || Options::Get().usePathtraching) {
+	if (rhit.hit.geomID != RTC_INVALID_GEOMETRY_ID /*|| Options::Get().usePathtraching*/) {
 		float dotNormalLight = data.v_normal.DotProduct(v_light);
 
 		if (distanceToLight - rhit.ray.tfar < 0.01f && dotNormalLight > 0) {
 			float G = (dotNormalLight * v_lightNormal.DotProduct(-v_light)) / distanceToLightSquare;
 
-			//RTCGeometry geometry = rtcGetGeometry(scene.scene, rhit.hit.geomID);
-			/*Material* material = (Material*)rtcGetGeometryUserData(geometry);
-			clr3f lightEmission = material->emission.AsColor();*/
-			clr3f lightEmission = clr3f{ 20.f, 20.f, 20.f };
+			RTCGeometry geometry = rtcGetGeometry(scene.scene->scene, rhit.hit.geomID);
+			Material* material = (Material*)rtcGetGeometryUserData(geometry);
+			clr3f lightEmission = material->emission.AsColor();
+			//clr3f lightEmission = clr3f{ 20.f, 20.f, 20.f };
 
 			color = lightEmission * (data.dotNormalView * G * _1_lightPDF);
 		}
@@ -196,7 +204,7 @@ clr3f Pathtracer::DirectLighting(IntersectionEmbree& data) {
 	return color;
 }
 
-clr3f Pathtracer::GlassShading(IntersectionEmbree& data, int depth, float n1) {
+clr3f Pathtracer::GlassShading(IntersectionData& data, int depth, float n1) {
 	clr3f color = {0.f, 0.f, 0.f};
 
 	//fresnel variables
@@ -242,7 +250,7 @@ clr3f Pathtracer::TraceRay2(RTCRay& ray) {
 	bool terminate = false;
 
 	for (int depth = 0; depth < maxDepth; depth++) {
-		IntersectionEmbree data = scene.IntersectRay(nextRay);
+		IntersectionData data = scene.IntersectRay(nextRay);
 
 		//terminate when nothing is hit
 		if (data.IntersectionFailed()) {
@@ -250,7 +258,7 @@ clr3f Pathtracer::TraceRay2(RTCRay& ray) {
 			break;
 		}
 
-		data.PrepareData(scene);
+		scene.PrepareData(data);
 
 		//lightsource was hit -> return its emission
 		if (!data.clrEmission.IsZero()) {
@@ -309,6 +317,43 @@ clr3f Pathtracer::TraceRay2(RTCRay& ray) {
 					PDF *= sample.PDF;
 					PDF *= 1.f / xi;
 				}
+				break;
+			case ShaderType::TorranceSparrow:
+			{
+				float xi = Sampling::Random1();
+				float rhoDiffuse = data.clrDiffuse.LargestValue();
+				float rhoSpecular = data.clrSpecular.LargestValue();
+
+				if (xi * (rhoDiffuse + rhoSpecular) < rhoDiffuse) {
+					sample = Sampling::CosWeighted(data.v_normal);
+					fr = data.clrDiffuse * (float)M_1_PI;
+				}
+				else {
+					ray_directLighting = false;
+
+					float roughness = sqrtf(2 / (data.material->shininess + 2.f));
+					//float roughness = data.material->shininess;
+					float roughness2 = roughness * roughness;
+
+					vec3f omegaH;
+					float D;
+					Sampling::GGX(data.v_normal, data.v_view, roughness2, &omegaH, &D);
+
+					//Fresnel term
+					float F = fresnel(data.dotNormalView, 1.f, data.material->shininess);
+
+					//smith masking (geometric attenuation)
+					float G = (2 * sample.dotNormalOmegaI * data.dotNormalView) / (
+						data.dotNormalView * sqrtf(roughness2 + (1 - roughness2) * sample.dotNormalOmegaI * sample.dotNormalOmegaI) +
+						sample.dotNormalOmegaI * sqrtf(roughness2 + (1 - roughness2) * data.dotNormalView* data.dotNormalView)
+					);
+
+					float brdf = (D * F * G) / (4 * data.dotNormalView* sample.dotNormalOmegaI);
+					fr = data.clrSpecular * brdf;
+				}
+				PDF *= sample.PDF;
+				PDF *= 1.f / xi;
+			}
 				break;
 			case ShaderType::Glass:
 				ray_directLighting = false;
@@ -375,14 +420,13 @@ int Pathtracer::InitDeviceAndScene(const char* config) {
 	ssize_t triangle_supported = rtcGetDeviceProperty(device_, RTC_DEVICE_PROPERTY_TRIANGLE_GEOMETRY_SUPPORTED);
 
 	// create a new scene bound to the specified device
-	scene.scene = rtcNewScene(device_);
+	scene.PrepareScene(device_);
 	//rtcSetSceneFlags(scene.scene, RTC_SCENE_FLAG_ROBUST);
-
 	return S_OK;
 }
 
 int Pathtracer::ReleaseDeviceAndScene() {
-	rtcReleaseScene(scene.scene);
+	scene.scene->Release();
 	rtcReleaseDevice(device_);
 
 	return S_OK;
@@ -441,11 +485,11 @@ void Pathtracer::LoadScene(const std::string file_name) {
 		} // end of triangles loop
 
 		rtcCommitGeometry(mesh);
-		unsigned int geom_id = rtcAttachGeometry(scene.scene, mesh);
+		unsigned int geom_id = rtcAttachGeometry(scene.scene->scene, mesh);
 		rtcReleaseGeometry(mesh);
 	} // end of surfaces loop
 
-	rtcCommitScene(scene.scene);
+	scene.scene->Commit();
 }
 
 int Pathtracer::Ui() {

@@ -34,8 +34,8 @@ public:
 	clr3f TraceRay2(RTCRay& ray);
 
 	//Helper methods.
-	clr3f DirectLighting(IntersectionEmbree& data);
-	clr3f GlassShading(IntersectionEmbree& data, int depth, float n1);
+	clr3f DirectLighting(IntersectionData& data);
+	clr3f GlassShading(IntersectionData& data, int depth, float n1);
 private:
 	std::vector<Surface*> surfaces_;
 	std::vector<Material*> materials_;

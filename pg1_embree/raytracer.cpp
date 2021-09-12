@@ -12,7 +12,7 @@ vec3f Raytracer::p_light = vec3f{ 0.f, 0.f, 0.f };
 vec3f Raytracer::lightClr = vec3f{ 0.f, 0.f, 0.f };
 
 Raytracer::Raytracer(const int width, const int height, const float fov_y, const vec3f view_from, const vec3f view_at, const char* config)
-	: SimpleGuiDX11(width, height), background(std::make_unique<BackgroundStatic>(defaultBackground)) {
+	: SimpleGuiDX11(width, height), background(std::make_unique<BackgroundStatic>(defaultBackground)), scene(SceneData(Options::Get().useGeometry)) {
 	InitDeviceAndScene(config);
 
 	camera_ = Camera(width, height, fov_y, view_from, view_at);
@@ -22,7 +22,7 @@ Raytracer::Raytracer(const int width, const int height, const float fov_y, const
 	_1_samples = 1.f / samples;
 	maxDepth = opt.maxDepth;
 	Sampling::InitGenerator();
-	IntersectionEmbree::convertMaterials = opt.materialToLinear;
+	IntersectionData::convertMaterials = opt.materialToLinear;
 	p_light = Options::Get().omnilight_pos;
 	lightClr = Options::Get().omnilight_clr;
 }
@@ -52,13 +52,13 @@ clr4f Raytracer::get_pixel(const int x, const int y, const float t) {
 clr3f Raytracer::TraceRay(RTCRay& ray, int depth, float n1) {
 	clr3f color = { 0.f, 0.f, 0.f };
 
-	IntersectionEmbree data = scene.IntersectRay(ray);
+	IntersectionData data = scene.IntersectRay(ray);
 	if (depth >= maxDepth) {}
 	else if (data.IntersectionFailed()) {
 		return background->GetPixelColor(data.v_rayDir);
 	}
 	else {
-		data.PrepareData(scene);
+		scene.PrepareData(data);
 
 		vec3f v_light = (p_light - data.p_rayHit).normalize();
 		clr3f clrPhong = data.clrAmbient;
@@ -111,13 +111,13 @@ clr3f Raytracer::TraceRay(RTCRay& ray, int depth, float n1) {
 	return color;
 }
 
-bool Raytracer::IsLightVisible(IntersectionEmbree& data, vec3f& v_light) {
+bool Raytracer::IsLightVisible(IntersectionData& data, vec3f& v_light) {
 	RTCRay shadowRay = PrepareRay(data.p_rayHit, v_light);
 	RTCRayHit rhit = SceneData::SetupRayHitStructure(shadowRay);
 
 	RTCIntersectContext context;
 	rtcInitIntersectContext(&context);
-	rtcIntersect1(scene.scene, &context, &rhit);
+	rtcIntersect1(scene.scene->scene, &context, &rhit);
 
 	return rhit.hit.geomID == RTC_INVALID_GEOMETRY_ID;
 }
@@ -151,14 +151,13 @@ int Raytracer::InitDeviceAndScene(const char* config) {
 	ssize_t triangle_supported = rtcGetDeviceProperty(device_, RTC_DEVICE_PROPERTY_TRIANGLE_GEOMETRY_SUPPORTED);
 
 	// create a new scene bound to the specified device
-	scene.scene = rtcNewScene(device_);
-	rtcSetSceneFlags(scene.scene, RTC_SCENE_FLAG_ROBUST);
+	scene.PrepareScene(device_);
 
 	return S_OK;
 }
 
 int Raytracer::ReleaseDeviceAndScene() {
-	rtcReleaseScene(scene.scene);
+	scene.scene->Release();
 	rtcReleaseDevice(device_);
 
 	return S_OK;
@@ -217,11 +216,11 @@ void Raytracer::LoadScene(const std::string file_name) {
 		} // end of triangles loop
 
 		rtcCommitGeometry(mesh);
-		unsigned int geom_id = rtcAttachGeometry(scene.scene, mesh);
+		unsigned int geom_id = rtcAttachGeometry(scene.scene->scene, mesh);
 		rtcReleaseGeometry(mesh);
 	} // end of surfaces loop
 
-	rtcCommitScene(scene.scene);
+	scene.scene->Commit();
 }
 
 int Raytracer::Ui() {

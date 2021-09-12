@@ -54,6 +54,8 @@ public:
 		return (2.f * dotNormalIn) * *this - in;
 	}
 
+	inline vec3f reflect(const vec3f& normal) const { return (2 * DotProduct(normal)) * normal - (*this); }
+
 	float& operator [] (const int idx) { return data[idx % 3]; }
 
 

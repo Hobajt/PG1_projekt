@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include "material.h"
 
+#include "sumstructs.h"
+
 const char Material::kDiffuseMapSlot = 0;
 const char Material::kSpecularMapSlot = 1;
 const char Material::kNormalMapSlot = 2;
@@ -68,4 +70,21 @@ void Material::set_texture(const int slot, Texture* texture) {
 
 Texture* Material::get_texture(const int slot) const {
 	return textures_[slot];
+}
+
+Material* Material::defaultMat = nullptr;
+
+Material* Material::GetDefault() {
+	if (defaultMat == nullptr) {
+		defaultMat = new Material();
+		defaultMat->shader = ShaderType::Glass;
+		defaultMat->attenuation = vec3f{ 0.1f, 0.1f, 0.1f };
+		defaultMat->diffuse = vec3f{ 0.1f, 0.1f, 0.1f };
+		defaultMat->specular = vec3f{ 0.1f, 0.1f, 0.1f };
+		defaultMat->ambient = vec3f{ 0.1f, 0.1f, 0.1f };
+		defaultMat->emission = vec3f{ 0.f, 0.f, 0.f };
+		defaultMat->shininess = 32.f;
+		defaultMat->ior = 1.5f;
+	}
+	return defaultMat;
 }

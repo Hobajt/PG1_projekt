@@ -65,6 +65,9 @@ Options Options::Load(std::string_view path) {
 				else if (line._Starts_with("pathtracing_recursive ")) {
 					opts.PT_recursive = (bool)(atoi(value.data()));
 				}
+				else if (line._Starts_with("use_geometry ")) {
+					opts.useGeometry = (bool)(atoi(value.data()));
+				}
 			}
 			printf("Loaded options from '%s'\n", path.data());
 		}

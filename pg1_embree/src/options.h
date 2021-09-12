@@ -26,6 +26,7 @@ public:
 	bool directLighting{ true };
 	bool usePathtraching{ true };
 	bool PT_recursive{ true };
+	bool useGeometry{ false };
 public:
 	static inline Options& Get() { return instance; }
 private:

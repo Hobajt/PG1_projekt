@@ -28,6 +28,8 @@ public:
 
 	Texture* get_texture(const int slot) const;
 
+	static Material* GetDefault();
+
 public:
 	vec3f ambient{ vec3f{0.f, 0.f, 0.f} };
 	vec3f diffuse{ vec3f{0.f, 0.f, 0.f} };
@@ -52,6 +54,8 @@ private:
 	Texture* textures_[NO_TEXTURES];
 
 	std::string name_;
+
+	static Material* defaultMat;
 };
 
 #endif

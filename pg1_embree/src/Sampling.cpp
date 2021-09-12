@@ -99,3 +99,48 @@ HemisphereSample Sampling::CosLobe(const vec3f& v_normal, const vec3f& omegaO, f
 
 	return sample;
 }
+
+HemisphereSample Sampling::GGX(const vec3f& v_normal, const vec3f& v_view, float roughness2, vec3f* omegaH, float* D) {
+	HemisphereSample sample = {};
+
+	float xi1 = Random1();
+	float xi2 = Random1();
+
+	float alpha2 = roughness2 * roughness2;
+
+	//sample random solid angle
+	float phi = 2 * (float)M_PI * xi1;
+	float theta = atanf(alpha2 * sqrtf(xi2/(1-xi2)));
+
+	//convert solid angle to xyz-vector
+	float sinTheta = sinf(theta);
+	*omegaH = vec3f{ sinTheta * cosf(phi), sinTheta * sinf(phi), cosf(theta)};
+
+	//calc incoming light vector (by reflecting outgoing vec around the half vec)
+	sample.omegaI = v_view.reflect(*omegaH);
+	sample.dotNormalOmegaI = v_normal.DotProduct(sample.omegaI);
+
+	//PDF calculation
+	float cosTheta = v_normal.DotProduct(*omegaH);
+	float denominator = cosTheta * cosTheta * (alpha2 - 1) + 1;
+	*D = alpha2 / (M_PI * denominator * denominator);
+
+	float dotNormalHalfway = omegaH->DotProduct(v_normal);
+	float dotHalfwayOmegaI = omegaH->DotProduct(v_view);
+
+	sample.PDF = (*D * dotNormalHalfway) / (4 * dotHalfwayOmegaI);
+
+	/*float denom = omegaH.z * omegaH.z * (roughness2 - 1) * (roughness2 - 1) + 1;
+	float pdf_h = (roughness2 * omegaH.z) / (M_PI * denom * denom);
+
+	float dotHalfwayOmegaI = omegaH.DotProduct(v_view);
+	sample.PDF = pdf_h / (4 * dotHalfwayOmegaI);
+
+	float dotNormalHalfway = omegaH.DotProduct(v_normal);
+	denom = dotNormalHalfway * dotNormalHalfway * (roughness2 - 1) * (roughness2 - 1) + 1;
+	D = (roughness2 * roughness2) / (M_PI * denom * denom);*/
+
+	//PDF = pdf_h / (4 * cosf())
+
+	return sample;
+}

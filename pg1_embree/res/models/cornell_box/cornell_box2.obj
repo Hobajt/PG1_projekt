@@ -1,7 +1,7 @@
 # 3ds Max Wavefront OBJ Exporter v0.97b - (c)2007 guruware
 # File Created: 13.11.2018 13:33:29
 
-mtllib cornell_box2_default.mtl
+mtllib cornell_box2_TS.mtl
 
 #
 # object Box

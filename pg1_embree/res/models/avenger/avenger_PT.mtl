@@ -6,7 +6,7 @@ newmtl black_plastic
 	Ni 1.460
 	Ka 0.01 0.01 0.01
 	Kd 0.2 0.2 0.2
-	Ks 0.2 0.2 0.2
+	Ks 0.4 0.4 0.4
 	shader 3
         
 newmtl green_plastic_transparent
